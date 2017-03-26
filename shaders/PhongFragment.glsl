@@ -2,7 +2,10 @@
 
 #version 410 core
 
-uniform sampler2D anasTex;
+uniform sampler2D DiffuseTexure;
+uniform sampler2D SpecTexure;
+uniform sampler2D AnasTexure;
+
 // This is passed on from the vertex shader
 //in vec3 LightIntensity;
 in vec3 FragmentPosition;
@@ -25,7 +28,7 @@ struct LightInfo {
 
 // We'll have a single light in the scene with some default values
 uniform LightInfo Light = LightInfo(
-            vec4(-2.0, -2.0, 10.0, 1.0),   // position
+            vec4(2.0, 2.0, 10.0, 1.0),   // position
             vec3(0.9, 0.9, 0.9),        // La
             vec3(1.0, 1.0, 1.0),        // Ld
             vec3(1.0, 1.0, 1.0)         // Ls
@@ -66,22 +69,7 @@ void main() {
     // Reflect the light about the surface normal
     vec3 r = reflect( -s, n );
 
-
-    // V = v
-    // R = r
-    // L = s
-    // N = FragmentNormal
-
-
-
-//              LightIntensity = (
-//                      Light.La *  Material.Ka +
-//                      Light.Ld *  Material.Kd * max( dot(s, FragmentNormal), 0.0 ) +
-//                      Light.Ls *  Material.Ks * pow( max( dot(r,v), 0.0 ), Material.Shininess ));
-
-
-
-    vec4 tangeant = vec4(texture(anasTex, FragmentAnasCoord).rgb,1.0f);
+    vec4 tangeant = vec4(texture(AnasTexure, FragmentAnasCoord).rgb,1.0f);
     mat4 ourMat;
     ourMat[0] = vec4(s,1.0f);
     ourMat[1] = vec4(v,1.0f);
@@ -97,17 +85,14 @@ void main() {
 
     float ourp = dot(-FragmentNormal,s);
 
+    vec3 Ks = vec3(texture(SpecTexure,FragmentAnasCoord).rgb);
+    vec3 Kd = vec3(texture(DiffuseTexure,FragmentAnasCoord).rgb);
+
 
     LightIntensity = (
-            Light.La *  Material.Ka +
-            Light.Ld *  Material.Kd * Idiffuse +
-            Light.Ls *  Material.Ks * Ispec);
-
-
-
-
-
-
+            Light.La *  Kd +
+            Light.Ld *  Kd * Idiffuse +
+            Light.Ls *  Ks * Ispec);
 
     //FragColor = vec4(texture(anasTex, FragmentAnasCoord).rgb,1.0f);
     FragColor = vec4(LightIntensity,1.0);

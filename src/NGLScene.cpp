@@ -57,12 +57,13 @@ void NGLScene::initTexture(const GLuint& texUnit, GLuint &texId, const char *fil
                 GL_UNSIGNED_BYTE, // Data type of pixel data
                 img.getPixels()); // Pointer to image data in memory
 
-    // Set up parameters for our texturedeertexture
+    // Set up parameters for our texture
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
+
 
 void NGLScene::initializeGL()
 {
@@ -135,15 +136,28 @@ void NGLScene::initializeGL()
 
   glEnable(GL_CULL_FACE);
 
-  // Beginning my editing of Jon Macey's NGLScene
+  m_mesh.reset(new ngl::Obj("models/anis.obj"));
+  glEnable(GL_TEXTURE_2D);
+  GLuint m_diffTex, m_specTex, m_anasTex;
 
-  GLuint anasID;
-  initTexture(0, anasID, "images/anis.png");
-  GLint pid = shader->getProgramID(shaderProgram);
-  glUniform1i(glGetUniformLocation(pid, "AnasTex"), //location of uniform
+  // Load up our textures
+  initTexture(0, m_diffTex, "images/diffuse.jpg");
+  initTexture(1, m_specTex, "images/spec.jpg");
+  initTexture(2, m_anasTex, "images/anis.jpg");
+
+
+  // Set the active texture unit on the GPU
+  GLint pid = shader->getProgramID("Phong");
+  glUniform1i(glGetUniformLocation(pid, "DiffuseTexure"), //location of uniform
                      0); // texture unit for colour
+  glUniform1i(glGetUniformLocation(pid, "SpecTexure"), //location of uniform
+                     1); // texture unit for normas
+  glUniform1i(glGetUniformLocation(pid, "AnasTexure"), //location of uniform
+                     2); // texture unit for normas
 
-    m_mesh.reset(new ngl::Obj("models/anis.obj", "images/anis.jpg"));
+
+  //-------------------------------GEOMETRY---------------------------------------
+
     std::vector<float> ourNorm, ourVerts, ourTex;
     std::vector<ngl::Vec3> verts = m_mesh->getVertexList();
     std::vector<ngl::Vec3> tex = m_mesh->getTextureCordList();
