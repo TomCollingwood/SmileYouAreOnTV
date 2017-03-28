@@ -1,0 +1,1 @@
+A C++ rendering project with anisotropic (done), Beckmann Kirchoff specular (planned) and chromatic abberation shaders (planned).
