@@ -32,7 +32,8 @@ void main() {
     // Set the position of the current vertex
     gl_Position = MVP * vec4(VertexPosition, 1.0);
 
-    FragmentPosition = vec3(MV * vec4(VertexPosition,1.0));
+    //FragmentPosition = vec3(MV * vec4(VertexPosition,1.0));
+    FragmentPosition = VertexPosition;
     FragmentNormal = N * VertexNormal;
     FragmentAnasCoord = VertexTexCoord;
     _MV = MV;

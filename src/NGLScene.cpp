@@ -129,10 +129,10 @@ void NGLScene::initializeGL()
   // transformations
   ngl::Mat4 iv = m_cam.getViewMatrix();
   iv.transpose();
-  ngl::Light light( ngl::Vec3( -2, 5, 2 ), ngl::Colour( 1, 1, 1, 1 ), ngl::Colour( 1, 1, 1, 1 ), ngl::LightModes::POINTLIGHT );
-  light.setTransform( iv );
+  //ngl::Light light( ngl::Vec3( 0, 0, 4 ), ngl::Colour( 1, 0, 1, 1 ), ngl::Colour( 1, 1, 1, 1 ), ngl::LightModes::POINTLIGHT );
+  //light.setTransform( iv );
   // load these values to the shader as well
-  light.loadToShader( "light" );
+  //light.loadToShader( "light" );
 
   glEnable(GL_CULL_FACE);
 
@@ -143,7 +143,7 @@ void NGLScene::initializeGL()
   // Load up our textures
   initTexture(0, m_diffTex, "images/diffuse.jpg");
   initTexture(1, m_specTex, "images/spec.jpg");
-  initTexture(2, m_anasTex, "images/anis.jpg");
+  initTexture(2, m_anasTex, "images/anis3.jpg");
 
 
   // Set the active texture unit on the GPU
