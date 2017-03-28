@@ -1,3 +1,4 @@
+
 /// @author Richard Southern
 
 #version 410 core
@@ -32,10 +33,8 @@ void main() {
     // Set the position of the current vertex
     gl_Position = MVP * vec4(VertexPosition, 1.0);
 
-    //FragmentPosition = vec3(MV * vec4(VertexPosition,1.0));
-    FragmentPosition = VertexPosition;
+    FragmentPosition = vec3(MV * vec4(VertexPosition,1.0));
     FragmentNormal = N * VertexNormal;
     FragmentAnasCoord = VertexTexCoord;
     _MV = MV;
 }
-

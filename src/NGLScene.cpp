@@ -59,7 +59,7 @@ void NGLScene::initTexture(const GLuint& texUnit, GLuint &texId, const char *fil
 
     // Set up parameters for our texture
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
@@ -143,7 +143,7 @@ void NGLScene::initializeGL()
   // Load up our textures
   initTexture(0, m_diffTex, "images/diffuse.jpg");
   initTexture(1, m_specTex, "images/spec.jpg");
-  initTexture(2, m_anasTex, "images/anis3.jpg");
+  initTexture(2, m_anasTex, "images/anis.jpg");
 
 
   // Set the active texture unit on the GPU
