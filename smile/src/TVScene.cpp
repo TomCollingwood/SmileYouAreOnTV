@@ -62,9 +62,9 @@ void TVScene::initGL() noexcept {
     glEnable(GL_TEXTURE_2D);
 
     // load up our textures
-    initTexture(0, m_diffTex, "images/diffuse.jpg");
-    initTexture(1, m_specTex, "images/spec.jpg");
-    initTexture(2, m_anasTex, "images/anis.jpg");
+    initTexture(0, m_diffTex, "images/diffuseLQ.jpg");
+    initTexture(1, m_specTex, "images/specLQ.jpg");
+    initTexture(2, m_anasTex, "images/anisLQ.jpg");
 
 
     // Set the active texture unit on the GPU
@@ -80,6 +80,7 @@ void TVScene::initGL() noexcept {
     // Generate FrameBuffers and Textures
     glGenFramebuffers(2, &m_framebuffer[0]);
     glGenTextures(2, &m_framebufferTex[0]);
+    glGenRenderbuffers(2, &m_rboDepthStencil[0]);
 
     // FIRST FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE3);
@@ -95,6 +96,12 @@ void TVScene::initGL() noexcept {
         GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[0], 0
     );
 
+    glBindRenderbuffer(GL_RENDERBUFFER,m_rboDepthStencil[0]);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 640, 480);
+    glFramebufferRenderbuffer(
+        GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[0]
+    );
+
     // SECOND FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE4);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[1]);
@@ -108,7 +115,16 @@ void TVScene::initGL() noexcept {
     glFramebufferTexture2D(
         GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[1], 0
     );
+
+    glBindRenderbuffer(GL_RENDERBUFFER, m_rboDepthStencil[1]);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 640, 480);
+    glFramebufferRenderbuffer(
+        GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[1]
+    );
+
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
     (*shader)["ScreenQuad"]->use();
     pid = shader->getProgramID("ScreenQuad");
@@ -117,8 +133,14 @@ void TVScene::initGL() noexcept {
     (*shader)["TVScreen"]->use();
     pid = shader->getProgramID("TVScreen");
     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3);
+    initTexture(5, m_anasTex, "images/noise.jpg");
+    glUniform1i(glGetUniformLocation(pid, "noiseTex"), //location of uniform
+                       5); // texture unit for normas
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // setup timer
+    t0 = std::chrono::high_resolution_clock::now();
 }
 
 void TVScene::initTexture(const GLuint& texUnit, GLuint &texId, const char *filename) {
@@ -236,6 +258,9 @@ void TVScene::paintGL() noexcept {
                        true, // whether to transpose matrix
                        glm::value_ptr(N)); // a raw pointer to the data
 
+    step++;
+    glUniform1i(glGetUniformLocation(pid, "iGlobalTime"), step);
+
     (*shader)["ScreenQuad"]->use();
     // MATTTE
     pid = shader->getProgramID("ScreenQuad");
@@ -256,6 +281,10 @@ void TVScene::paintGL() noexcept {
                        true, // whether to transpose matrix
                        glm::value_ptr(N)); // a raw pointer to the data
 
+
+    // TIMER
+
+    //
     int whichFrame = 0;
     int otherFrame = 1;
     if(frame)
@@ -276,12 +305,12 @@ void TVScene::paintGL() noexcept {
     glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
-
+    glEnable(GL_DEPTH_TEST);
     (*shader)["Anisotropic"]->use();
     m_anistropicMesh->draw();
 
     (*shader)["Matte"]->use();
-    m_matteMesh->draw();
+    //m_matteMesh->draw();
 
 #ifdef SCREEN_DEF
     (*shader)["TVScreen"]->use();
@@ -292,6 +321,7 @@ void TVScene::paintGL() noexcept {
 
     // DRAW TO SCREEN
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

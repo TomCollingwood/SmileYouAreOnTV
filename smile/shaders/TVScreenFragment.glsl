@@ -4,6 +4,8 @@
 
 
 uniform sampler2D screenTexture;
+uniform int iGlobalTime;
+uniform sampler2D noiseTex;
 
 // This is passed on from the vertex shader
 //in vec3 LightIntensity;
@@ -72,6 +74,44 @@ float beckmannSpecular(
 // end citation
 
 /************************************************************************************/
+
+// code below taken from https://www.shadertoy.com/view/ldjGzV
+// begin citation
+
+float noise(vec2 p)
+{
+  float s = texture(noiseTex,vec2(2.*sin(iGlobalTime),2.*cos(iGlobalTime))*iGlobalTime*8. + p*1.).x;
+  s *= s;
+  return s;
+}
+
+vec2 screenDistort(vec2 uv)
+{
+  uv -= vec2(.5,.5);
+  uv = uv*1.2*(1./1.2+2.*uv.x*uv.x*uv.y*uv.y);
+  uv += vec2(.5,.5);
+  return uv;
+}
+
+float onOff(float a, float b, float c)
+{
+  return step(c, sin(iGlobalTime + a*cos(iGlobalTime*b)));
+}
+
+vec3 getVideo(vec2 uv)
+{
+  vec2 look = uv;
+  float window = 1./(1.+20.*(look.y-mod(iGlobalTime/4.,1.))*(look.y-mod(iGlobalTime/4.,1.)));
+  look.x = look.x + sin(look.y*10. + iGlobalTime)/50.*onOff(4.,4.,.3)*(1.+cos(iGlobalTime*80.))*window;
+  //float vShift = 0.4*onOff(2.,3.,.9)*(sin(iGlobalTime)*sin(iGlobalTime*20.) +
+  //                   (0.5 + 0.1*sin(iGlobalTime*200.)*cos(iGlobalTime)));
+  look.y = mod(look.y ,1);//+ vShift, 1.);
+  vec3 video = vec3(texture(screenTexture,look));
+  return video;
+}
+//end of citation
+
+
 vec3 LightIntensity;
 
 
@@ -95,6 +135,8 @@ void main() {
 
   vec3 screenFrag = texture(screenTexture,FragmentTexCoord).rgb;
 
+
+
   float Ks = beckmannSpecular(s,v,n,0.9);
   LightIntensity = (
           Light.La * screenFrag );//+
@@ -103,6 +145,15 @@ void main() {
 
 
     //FragColor = vec4(1.0f,0.0f,0.0f,1.0);
-  FragColor = vec4(LightIntensity,1.0);
+
+  vec2 uv = screenDistort(FragmentTexCoord);
+
+  float vigAmt = 3.+.3*sin(iGlobalTime + 5.*cos(iGlobalTime*5.));
+  float vignette = (1.-vigAmt*(uv.y-.5)*(uv.y-.5))*(1.-vigAmt*(uv.x-.5)*(uv.x-.5));
+
+  vec3 video = getVideo(uv);
+  video+=noise(FragmentTexCoord*1.5f)/4.0f;
+  video*=vignette;
+  FragColor = vec4(video,1.0f);
 
 }
