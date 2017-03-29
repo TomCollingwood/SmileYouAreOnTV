@@ -18,7 +18,8 @@ HEADERS += src/TVScene.h \
            ../common/include/trackballcamera.h
 
 OTHER_FILES += \
-           shaders/*
+           shaders/* \
+           ../readme.md
 
 DISTFILES += \
            shaders/*

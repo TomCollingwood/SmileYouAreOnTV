@@ -150,7 +150,7 @@ void main() {
   float vignette = (1.-vigAmt*(uv.y-.5)*(uv.y-.5))*(1.-vigAmt*(uv.x-.5)*(uv.x-.5));
 
   vec3 video = getVideo(uv);
-  video+=noise(FragmentTexCoord*1.5f)/4.0f;
+  video+=noise(FragmentTexCoord*1.5f)/10.0f;
   video*=vignette;
   FragColor = vec4(video,1.0f);
 

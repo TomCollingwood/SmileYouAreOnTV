@@ -119,9 +119,9 @@ void TrackballCamera::update() {
         // Now use lookat function to set the view matrix (assume y is up)
         glm::dmat3 R_yaw = glm::mat3_cast(glm::angleAxis(m_yaw, glm::dvec3(0.0, 1.0, 0.0)));
         glm::dmat3 R_pitch = glm::mat3_cast(glm::angleAxis(m_pitch, glm::dvec3(1.0, 0.0, 0.0)));
-        glm::dmat3 R_roll = glm::mat3_cast(glm::angleAxis(m_roll, glm::dvec3(0.0, 0.0, 1.0)));
+        glm::tmat4x4<float,(glm::precision)0U> R_roll = glm::mat4_cast(glm::angleAxis(m_roll, glm::dvec3(0.0f, 0.0f, 1.0f)));
         glm::dvec3 eye = (R_yaw * R_pitch * (m_zoom * (m_eye-m_target))) + m_target;
-        m_V = glm::lookAt(glm::vec3(eye), glm::vec3(m_target), glm::vec3(0.0f,1.0f,0.0f));
+        m_V = R_roll*glm::lookAt(glm::vec3(eye), glm::vec3(m_target), glm::vec3(0.0f,1.0f,0.0f));
 
         m_dirty = false;
     }
@@ -132,11 +132,11 @@ void TrackballCamera::handleKey(int key, bool isPress)
   if (isPress) {
       switch(key) {
       case GLFW_KEY_Q: //exit the application
-          m_roll+=0.1f;
+          m_roll+=0.05f;
           m_dirty = true;
           break;
       case GLFW_KEY_E: //exit the application
-          m_roll-=10.0f;
+          m_roll-=0.05f;
           m_dirty = true;
         break;
       }
