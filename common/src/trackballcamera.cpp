@@ -9,6 +9,7 @@
 TrackballCamera::TrackballCamera() :
     Camera(),
     m_state(TRACKBALL_PASSIVE),
+    m_roll(0.0),
     m_yaw(0.0),
     m_pitch(0.0),
     m_zoom(1.0),
@@ -93,6 +94,7 @@ void TrackballCamera::mouseRotate(double mouseX, double mouseY) {
     m_pitch = glm::clamp(m_lastPitch + (m_lastY - mouseY)*m_sensitivity, // value
                          -glm::pi<double>() * 0.5, // lower bound
                          glm::pi<double>() * 0.5); // upper bound
+  printf(" %f ",m_pitch);
 }
 
 /**
@@ -118,10 +120,24 @@ void TrackballCamera::update() {
         // Now use lookat function to set the view matrix (assume y is up)
         glm::dmat3 R_yaw = glm::mat3_cast(glm::angleAxis(m_yaw, glm::dvec3(0.0, 1.0, 0.0)));
         glm::dmat3 R_pitch = glm::mat3_cast(glm::angleAxis(m_pitch, glm::dvec3(1.0, 0.0, 0.0)));
-        glm::dvec3 eye = (R_yaw * R_pitch * (m_zoom * (m_eye-m_target))) + m_target;
+        glm::dmat3 R_roll = glm::mat3_cast(glm::angleAxis(m_roll, glm::dvec3(0.0, 0.0, 1.0)));
+        glm::dvec3 eye = (R_yaw * R_pitch * R_roll * (m_zoom * (m_eye-m_target))) + m_target;
         m_V = glm::lookAt(glm::vec3(eye), glm::vec3(m_target), glm::vec3(0.0f,1.0f,0.0f));
 
         m_dirty = false;
     }
+}
+
+void TrackballCamera::handleKey(int key, bool isPress)
+{
+  if (isPress) {
+      switch(key) {
+      case GLFW_KEY_Q: //exit the application
+          m_roll+=0.1f;
+      case GLFW_KEY_E: //exit the application
+          m_roll-=10.0f;
+      }
+  }
+  m_dirty = true;
 }
 

@@ -18,13 +18,11 @@ HEADERS += src/TVScene.h \
            ../common/include/trackballcamera.h
 
 OTHER_FILES += \
-           shaders/AnisotropicFragment.glsl \
-           shaders/AnisotropicVertex.glsl \
+           shaders/*
 
 DISTFILES += \
-           shaders/AnisotropicFragment.glsl \
-           shaders/AnisotropicVertex.glsl \
-            README.md
+           shaders/*
+           ../README.md
 
 OBJECTS_DIR = obj/
 	

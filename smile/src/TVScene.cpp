@@ -7,6 +7,8 @@
 #include <ngl/ShaderLib.h>
 #include <ngl/Image.h>
 
+#define SCREEN_DEF
+
 TVScene::TVScene() : Scene() {
 }
 
@@ -29,10 +31,34 @@ void TVScene::initGL() noexcept {
     shader->loadShader("Anisotropic",
                        "shaders/AnisotropicVertex.glsl",
                        "shaders/AnisotropicFragment.glsl");
+    shader->loadShader("Matte",
+                       "shaders/MatteVertex.glsl",
+                       "shaders/MatteFragment.glsl");
+    shader->loadShader("ScreenQuad",
+                       "shaders/ScreenQuadVertex.glsl",
+                       "shaders/ScreenQuadFragment.glsl");
+    shader->loadShader("TVScreen",
+                       "shaders/TVScreenVertex.glsl",
+                       "shaders/TVScreenFragment.glsl");
+
+
+
     (*shader)["Anisotropic"]->use();
 
-    m_mesh.reset(new ngl::Obj("models/anis2.obj"));
-    m_mesh->createVAO();
+    m_anistropicMesh.reset(new ngl::Obj("models/anis2.obj"));
+    m_anistropicMesh->createVAO();
+
+    //(*shader)["Matte"]->use();
+
+    m_matteMesh.reset(new ngl::Obj("models/matte.obj"));
+    m_matteMesh->createVAO();
+
+    m_screenMesh.reset(new ngl::Obj("models/screen.obj"));
+    m_screenMesh->createVAO();
+
+    m_screenQuad.reset(new ngl::Obj("models/screenQUAD.obj"));
+    m_screenQuad->createVAO();
+
     glEnable(GL_TEXTURE_2D);
 
     // load up our textures
@@ -50,6 +76,49 @@ void TVScene::initGL() noexcept {
     glUniform1i(glGetUniformLocation(pid, "AnasTexure"), //location of uniform
                        2); // texture unit for normas
 
+
+    // Generate FrameBuffers and Textures
+    glGenFramebuffers(2, &m_framebuffer[0]);
+    glGenTextures(2, &m_framebufferTex[0]);
+
+    // FIRST FRAMEBUFFER TEXTURE AND BUFFER
+    glActiveTexture(GL_TEXTURE3);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[0]);
+    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[0]);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGB, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[0], 0
+    );
+
+    // SECOND FRAMEBUFFER TEXTURE AND BUFFER
+    glActiveTexture(GL_TEXTURE4);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[1]);
+    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[1]);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGB, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[1], 0
+    );
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    (*shader)["ScreenQuad"]->use();
+    pid = shader->getProgramID("ScreenQuad");
+    glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3);
+
+    (*shader)["TVScreen"]->use();
+    pid = shader->getProgramID("TVScreen");
+    glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void TVScene::initTexture(const GLuint& texUnit, GLuint &texId, const char *filename) {
@@ -96,6 +165,7 @@ void TVScene::paintGL() noexcept {
     (*shader)["Anisotropic"]->use();
     GLint pid = shader->getProgramID("Anisotropic");
 
+
     // Our MVP matrices
     glm::mat4 M = glm::mat4(1.0f);
     glm::mat4 MVP, MV;
@@ -107,6 +177,27 @@ void TVScene::paintGL() noexcept {
     MVP = m_P * MV;
 
     // Set this MVP on the GPU
+    // ANISOTROPIC
+    glUniformMatrix4fv(glGetUniformLocation(pid, "MVP"), //location of uniform
+                       1, // how many matrices to transfer
+                       false, // whether to transpose matrix
+                       glm::value_ptr(MVP)); // a raw pointer to the data
+    glUniformMatrix4fv(glGetUniformLocation(pid, "MV"), //location of uniform
+                       1, // how many matrices to transfer
+                       false, // whether to transpose matrix
+                       glm::value_ptr(MV)); // a raw pointer to the data
+    glUniformMatrix3fv(glGetUniformLocation(pid, "N"), //location of uniform
+                       1, // how many matrices to transfer
+                       true, // whether to transpose matrix
+                       glm::value_ptr(N)); // a raw pointer to the data
+    glUniformMatrix3fv(glGetUniformLocation(pid, "N"), //location of uniform
+                       1, // how many matrices to transfer
+                       true, // whether to transpose matrix
+                       glm::value_ptr(N)); // a raw pointer to the data
+
+    (*shader)["Matte"]->use();
+    // MATTTE
+    pid = shader->getProgramID("Matte");
     glUniformMatrix4fv(glGetUniformLocation(pid, "MVP"), //location of uniform
                        1, // how many matrices to transfer
                        false, // whether to transpose matrix
@@ -125,5 +216,93 @@ void TVScene::paintGL() noexcept {
                        glm::value_ptr(N)); // a raw pointer to the data
 
 
-    m_mesh->draw();
+    (*shader)["TVScreen"]->use();
+    // MATTTE
+    pid = shader->getProgramID("TVScreen");
+    glUniformMatrix4fv(glGetUniformLocation(pid, "MVP"), //location of uniform
+                       1, // how many matrices to transfer
+                       false, // whether to transpose matrix
+                       glm::value_ptr(MVP)); // a raw pointer to the data
+    glUniformMatrix4fv(glGetUniformLocation(pid, "MV"), //location of uniform
+                       1, // how many matrices to transfer
+                       false, // whether to transpose matrix
+                       glm::value_ptr(MV)); // a raw pointer to the data
+    glUniformMatrix3fv(glGetUniformLocation(pid, "N"), //location of uniform
+                       1, // how many matrices to transfer
+                       true, // whether to transpose matrix
+                       glm::value_ptr(N)); // a raw pointer to the data
+    glUniformMatrix3fv(glGetUniformLocation(pid, "N"), //location of uniform
+                       1, // how many matrices to transfer
+                       true, // whether to transpose matrix
+                       glm::value_ptr(N)); // a raw pointer to the data
+
+    (*shader)["ScreenQuad"]->use();
+    // MATTTE
+    pid = shader->getProgramID("ScreenQuad");
+    glUniformMatrix4fv(glGetUniformLocation(pid, "MVP"), //location of uniform
+                       1, // how many matrices to transfer
+                       false, // whether to transpose matrix
+                       glm::value_ptr(MVP)); // a raw pointer to the data
+    glUniformMatrix4fv(glGetUniformLocation(pid, "MV"), //location of uniform
+                       1, // how many matrices to transfer
+                       false, // whether to transpose matrix
+                       glm::value_ptr(MV)); // a raw pointer to the data
+    glUniformMatrix3fv(glGetUniformLocation(pid, "N"), //location of uniform
+                       1, // how many matrices to transfer
+                       true, // whether to transpose matrix
+                       glm::value_ptr(N)); // a raw pointer to the data
+    glUniformMatrix3fv(glGetUniformLocation(pid, "N"), //location of uniform
+                       1, // how many matrices to transfer
+                       true, // whether to transpose matrix
+                       glm::value_ptr(N)); // a raw pointer to the data
+
+    int whichFrame = 0;
+    int otherFrame = 1;
+    if(frame)
+    {
+      whichFrame=1;
+      otherFrame=0;
+      frame=false;
+    }
+    else
+    {
+      whichFrame=0;
+      otherFrame=1;
+      frame=true;
+    }
+    //DRAW TO FRAMEBUFFER
+#ifdef SCREEN_DEF
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[whichFrame]);
+    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif
+
+    (*shader)["Anisotropic"]->use();
+    m_anistropicMesh->draw();
+
+    (*shader)["Matte"]->use();
+    m_matteMesh->draw();
+
+#ifdef SCREEN_DEF
+    (*shader)["TVScreen"]->use();
+    glActiveTexture(GL_TEXTURE3+otherFrame);
+    pid = shader->getProgramID("TVScreen");
+    glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3+otherFrame);
+    m_screenMesh->draw();
+
+    // DRAW TO SCREEN
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    (*shader)["ScreenQuad"]->use();
+    pid = shader->getProgramID("ScreenQuad");
+    glActiveTexture(GL_TEXTURE3+whichFrame);
+    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[whichFrame]);
+    glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3+whichFrame);
+
+    m_screenQuad->draw();
+#endif
+
+
 }

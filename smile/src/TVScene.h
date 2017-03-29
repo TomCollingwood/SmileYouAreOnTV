@@ -16,8 +16,11 @@ public:
     void initGL() noexcept;
 
 private:
-    GLuint m_diffTex, m_specTex, m_anasTex;
-    std::unique_ptr<ngl::Obj> m_mesh;
+    GLuint m_diffTex, m_specTex, m_anasTex, m_vao;
+    GLuint m_framebufferTex[2];
+    GLuint m_framebuffer[2];
+    bool frame = false;
+    std::unique_ptr<ngl::Obj> m_anistropicMesh, m_matteMesh, m_screenMesh, m_screenQuad;
     int amountVertexData = 0;
 
     /// Initialise a texture

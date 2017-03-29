@@ -21,6 +21,8 @@ public:
     /// Call this before you need to retrieve the matrices from the camera
     virtual void update();
 
+    virtual void handleKey(int /*glfw key*/, bool /*isPress*/);
+
     /// Mouse movement handler to look around
     virtual void handleMouseMove(double /*mouseX*/, double /*mouseY*/);
 
@@ -49,7 +51,7 @@ private:
     TrackballState m_state;
 
     /// Store the yaw and pitch
-    double m_yaw, m_pitch, m_zoom, m_sensitivity;
+    double m_yaw, m_pitch, m_roll, m_zoom, m_sensitivity;
 
     /// Store the target and position with this class
     glm::dvec3 m_target, m_eye;

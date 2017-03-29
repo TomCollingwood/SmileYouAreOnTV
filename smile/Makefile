@@ -58,11 +58,8 @@ OBJECTS       = obj/main.o \
 		obj/scene.o \
 		obj/camera.o \
 		obj/trackballcamera.o
-DIST          = shaders/AnisotropicFragment.glsl \
-		shaders/AnisotropicVertex.glsl \
-		README.md \
-		../.qmake.stash \
-		../common/common.pri \
+DIST          = shaders/* \
+		.qmake.stash \
 		SmileYouAreOnTV.pro src/TVScene.h \
 		../common/include/scene.h \
 		../common/include/camera.h \
@@ -82,7 +79,7 @@ first: all
 $(TARGET):  $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
-Makefile: SmileYouAreOnTV.pro ../.qmake.cache /Users/Tom/Qt2/5.8/clang_64/mkspecs/macx-clang/qmake.conf /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/spec_pre.prf \
+Makefile: SmileYouAreOnTV.pro .qmake.cache /Users/Tom/Qt2/5.8/clang_64/mkspecs/macx-clang/qmake.conf /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/spec_pre.prf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/qdevice.pri \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/device_config.prf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/common/unix.conf \
@@ -231,8 +228,8 @@ Makefile: SmileYouAreOnTV.pro ../.qmake.cache /Users/Tom/Qt2/5.8/clang_64/mkspec
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/qt_config.prf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/macx-clang/qmake.conf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/spec_post.prf \
-		../.qmake.cache \
-		../.qmake.stash \
+		.qmake.cache \
+		.qmake.stash \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/exclusive_builds.prf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/mac/sdk.prf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/toolchain.prf \
@@ -240,7 +237,7 @@ Makefile: SmileYouAreOnTV.pro ../.qmake.cache /Users/Tom/Qt2/5.8/clang_64/mkspec
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/default_pre.prf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/mac/default_pre.prf \
 		/Users/Tom/NGL/UseNGL.pri \
-		../common/common.pri \
+		/Users/Tom/Documents/GitHubStuff/SmileYouAreOnTV/common/common.pri \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/resolve_config.prf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/default_post.prf \
 		/Users/Tom/Qt2/5.8/clang_64/mkspecs/features/mac/default_post.prf \
@@ -416,8 +413,8 @@ Makefile: SmileYouAreOnTV.pro ../.qmake.cache /Users/Tom/Qt2/5.8/clang_64/mkspec
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/qt_config.prf:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/macx-clang/qmake.conf:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/spec_post.prf:
-../.qmake.cache:
-../.qmake.stash:
+.qmake.cache:
+.qmake.stash:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/exclusive_builds.prf:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/mac/sdk.prf:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/toolchain.prf:
@@ -425,7 +422,7 @@ Makefile: SmileYouAreOnTV.pro ../.qmake.cache /Users/Tom/Qt2/5.8/clang_64/mkspec
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/default_pre.prf:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/mac/default_pre.prf:
 /Users/Tom/NGL/UseNGL.pri:
-../common/common.pri:
+/Users/Tom/Documents/GitHubStuff/SmileYouAreOnTV/common/common.pri:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/resolve_config.prf:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/default_post.prf:
 /Users/Tom/Qt2/5.8/clang_64/mkspecs/features/mac/default_post.prf:
@@ -477,6 +474,7 @@ clean: compiler_clean
 
 distclean: clean 
 	-$(DEL_FILE) $(TARGET) 
+	-$(DEL_FILE) .qmake.stash
 	-$(DEL_FILE) Makefile
 
 
@@ -534,7 +532,7 @@ obj/main.o: src/main.cpp src/TVScene.h \
 		/Users/Tom/NGL/include/ngl/RibExport.h \
 		/Users/Tom/NGL/include/ngl/NGLassert.h \
 		../common/include/scene.h \
-		../common/include/glinclude.h \
+		/Users/Tom/Documents/GitHubStuff/SmileYouAreOnTV/common/include/glinclude.h \
 		/usr/local/include/glm/glm.hpp \
 		/usr/local/include/glm/detail/_fixes.hpp \
 		/usr/local/include/glm/fwd.hpp \
@@ -619,7 +617,7 @@ obj/main.o: src/main.cpp src/TVScene.h \
 		/usr/local/include/glm/gtc/constants.inl \
 		/usr/local/include/glm/gtc/matrix_transform.inl \
 		../common/include/firstpersoncamera.h \
-		../common/include/camera.h \
+		/Users/Tom/Documents/GitHubStuff/SmileYouAreOnTV/common/include/camera.h \
 		/usr/local/include/GLFW/glfw3.h \
 		/usr/local/include/glm/gtx/string_cast.hpp \
 		/usr/local/include/glm/gtc/type_precision.hpp \
@@ -653,7 +651,7 @@ obj/TVScene.o: src/TVScene.cpp src/TVScene.h \
 		/Users/Tom/NGL/include/ngl/RibExport.h \
 		/Users/Tom/NGL/include/ngl/NGLassert.h \
 		../common/include/scene.h \
-		../common/include/glinclude.h \
+		/Users/Tom/Documents/GitHubStuff/SmileYouAreOnTV/common/include/glinclude.h \
 		/usr/local/include/glm/glm.hpp \
 		/usr/local/include/glm/detail/_fixes.hpp \
 		/usr/local/include/glm/fwd.hpp \
@@ -753,7 +751,7 @@ obj/TVScene.o: src/TVScene.cpp src/TVScene.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/TVScene.o src/TVScene.cpp
 
 obj/scene.o: ../common/src/scene.cpp ../common/include/scene.h \
-		../common/include/glinclude.h \
+		/Users/Tom/Documents/GitHubStuff/SmileYouAreOnTV/common/include/glinclude.h \
 		/usr/local/include/glm/glm.hpp \
 		/usr/local/include/glm/detail/_fixes.hpp \
 		/usr/local/include/glm/fwd.hpp \
@@ -839,7 +837,7 @@ obj/scene.o: ../common/src/scene.cpp ../common/include/scene.h \
 		/usr/local/include/glm/gtc/matrix_transform.inl
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/scene.o ../common/src/scene.cpp
 
-obj/camera.o: ../common/src/camera.cpp ../common/include/camera.h \
+obj/camera.o: ../common/src/camera.cpp /Users/Tom/Documents/GitHubStuff/SmileYouAreOnTV/common/include/camera.h \
 		/usr/local/include/GLFW/glfw3.h \
 		/usr/local/include/glm/glm.hpp \
 		/usr/local/include/glm/detail/_fixes.hpp \
@@ -937,7 +935,7 @@ obj/camera.o: ../common/src/camera.cpp ../common/include/camera.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/camera.o ../common/src/camera.cpp
 
 obj/trackballcamera.o: ../common/src/trackballcamera.cpp ../common/include/trackballcamera.h \
-		../common/include/camera.h \
+		/Users/Tom/Documents/GitHubStuff/SmileYouAreOnTV/common/include/camera.h \
 		/usr/local/include/GLFW/glfw3.h \
 		/usr/local/include/glm/glm.hpp \
 		/usr/local/include/glm/detail/_fixes.hpp \
