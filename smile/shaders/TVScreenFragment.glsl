@@ -135,8 +135,6 @@ void main() {
 
   vec3 screenFrag = texture(screenTexture,FragmentTexCoord).rgb;
 
-
-
   float Ks = beckmannSpecular(s,v,n,0.9);
   LightIntensity = (
           Light.La * screenFrag );//+

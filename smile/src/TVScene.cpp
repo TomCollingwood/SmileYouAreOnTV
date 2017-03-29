@@ -45,7 +45,7 @@ void TVScene::initGL() noexcept {
 
     (*shader)["Anisotropic"]->use();
 
-    m_anistropicMesh.reset(new ngl::Obj("models/anis2.obj"));
+    m_anistropicMesh.reset(new ngl::Obj("models/anis.obj"));
     m_anistropicMesh->createVAO();
 
     //(*shader)["Matte"]->use();
@@ -87,7 +87,7 @@ void TVScene::initGL() noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[0]);
     glBindTexture(GL_TEXTURE_2D, m_framebufferTex[0]);
     glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGB, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+        GL_TEXTURE_2D, 0, GL_RGB, 960, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -97,7 +97,7 @@ void TVScene::initGL() noexcept {
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER,m_rboDepthStencil[0]);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 640, 480);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 960, 720);
     glFramebufferRenderbuffer(
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[0]
     );
@@ -107,7 +107,7 @@ void TVScene::initGL() noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[1]);
     glBindTexture(GL_TEXTURE_2D, m_framebufferTex[1]);
     glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGB, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+        GL_TEXTURE_2D, 0, GL_RGB, 960, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -117,7 +117,7 @@ void TVScene::initGL() noexcept {
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER, m_rboDepthStencil[1]);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 640, 480);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 960, 720);
     glFramebufferRenderbuffer(
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[1]
     );
@@ -310,7 +310,7 @@ void TVScene::paintGL() noexcept {
     m_anistropicMesh->draw();
 
     (*shader)["Matte"]->use();
-    //m_matteMesh->draw();
+    m_matteMesh->draw();
 
 #ifdef SCREEN_DEF
     (*shader)["TVScreen"]->use();
