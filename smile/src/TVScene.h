@@ -2,9 +2,7 @@
 #define TVScene_H
 
 #include <ngl/Obj.h>
-#include <chrono>
 #include "scene.h"
-
 
 class TVScene : public Scene
 {
@@ -13,6 +11,8 @@ public:
 
     /// Called when the scene needs to be painted
     void paintGL() noexcept;
+
+    GLvoid resizeGL(GLint width, GLint height) noexcept;
 
     /// Called when the scene is to be initialised
     void initGL() noexcept;
@@ -28,7 +28,7 @@ private:
 
     // timer
     int step=0;
-    std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
+    //std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
     float global_time = 0;
 
     /// Initialise a texture

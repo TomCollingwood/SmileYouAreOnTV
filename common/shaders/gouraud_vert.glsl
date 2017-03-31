@@ -1,4 +1,4 @@
-#version 410
+#version 430
 
 // The modelview and projection matrices are no longer given in OpenGL 4.2
 uniform mat4 MV;

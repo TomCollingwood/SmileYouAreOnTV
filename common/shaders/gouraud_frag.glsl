@@ -1,4 +1,4 @@
-#version 410
+#version 430
 
 // This is passed on from the vertex shader
 in vec3 LightIntensity;

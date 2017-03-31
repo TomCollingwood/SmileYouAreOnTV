@@ -22,7 +22,7 @@
 #ifndef NOISETEXTURE_H
 #define NOISETEXTURE_H
 
-#include "glinclude.h"
+#include <GL/gl.h>
 #include <iostream>
 #include <array>
 

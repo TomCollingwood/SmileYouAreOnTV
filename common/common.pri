@@ -10,7 +10,7 @@ LAB_BUILD=false
 NGLPATH = $$(NGLDIR)
 isEmpty(NGLPATH) {
   NGLPATH = $$(HOME)/NGL
-}
+} 
 
 # Check to see if there is a custom IGL directory (I've put it on /public/devel)
 IGLPATH = $$(IGLDIR)
@@ -20,14 +20,14 @@ isEmpty(IGLPATH) {
 
 # Check to see if there is a custom libnoise directory (this is part of the standard build)
 TEST = $$(NOISEDIR)
-#isEmpty(TEST) {
-#  NOISEINCPATH = /public/devel/include/noise
-#  NOISELIBPATH = /public/devel/lib
-#}
-#else {
-#  NOISEINCPATH = $$(NOISEDIR)/src
-#  NOISELIBPATH = $$(NOISEDIR)/lib
-#}
+isEmpty(TEST) {
+  NOISEINCPATH = /public/devel/include/noise
+  NOISELIBPATH = /public/devel/lib
+} 
+else {
+  NOISEINCPATH = $$(NOISEDIR)/src
+  NOISELIBPATH = $$(NOISEDIR)/lib
+}
 
 # Check to see if there is a custom Eigen installation
 EIGENPATH = $$(EIGENDIR)
@@ -50,13 +50,14 @@ OBJECTS_DIR = obj
 # The libs path (this will change depending on your platform
 if ($$LAB_BUILD) {
   LIBS += -lXi -ldl -lX11 -lXrandr -lXinerama -lXcursor -lXxf86vm -lglfw3 
+LIBS += -lGL -lGLEW -lGLU -lNGL -L$$NGLPATH/lib NOISELIBPATH/libnoise.a
 } else {
   LIBS += -lglfw
 }
-#LIBS += -lGLEW -lNGL -L$$NGLPATH/lib #$$NOISELIBPATH/libnoise.a
+
 
 # The RPATH tells the executable where to find the shared libraries that are not in LD_LIBRARY_PATH
-#QMAKE_RPATHDIR += $$NGLPATH/lib
+QMAKE_RPATHDIR += $$NGLPATH/lib 
 
 # Include the NGL pri file
 include($$NGLPATH/UseNGL.pri)

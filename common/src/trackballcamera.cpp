@@ -143,4 +143,3 @@ void TrackballCamera::handleKey(int key, bool isPress)
 
   }
 }
-

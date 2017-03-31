@@ -130,6 +130,11 @@ void main() {
   // Reflect the light about the surface normal
   vec3 r = reflect( -s, n );
 
+  vec3 refractRGB[3];
+  refractRGB[0] = normalize(refract(v,n,2.01f));
+  refractRGB[1] = normalize(refract(v,n,2.05f));
+  refractRGB[2] = normalize(refract(v,n,2.1f));
+
   // Compute the light from the ambient, diffuse and specular components
   // PHONG
 
@@ -146,12 +151,18 @@ void main() {
 
   vec2 uv = screenDistort(FragmentTexCoord);
 
+  //uv.x += refractRGB[0].x*0.0001f;
+  //uv.y += refractRGB[0].y*0.0001f;
+
   float vigAmt = 3.+.3*sin(iGlobalTime + 5.*cos(iGlobalTime*5.));
   float vignette = (1.-vigAmt*(uv.y-.5)*(uv.y-.5))*(1.-vigAmt*(uv.x-.5)*(uv.x-.5));
 
   vec3 video = getVideo(uv);
   video+=noise(FragmentTexCoord*1.5f)/10.0f;
   video*=vignette;
+  video[0]+= length(v)*0.1f;//refractRGB[0].x*0.01f + refractRGB[0].y*0.01f;
+  //video[1]+= refractRGB[1].x*0.01f + refractRGB[1].y*0.01f;
+  //video[2]+= refractRGB[2].x*0.01f + refractRGB[2].y*0.01f;
   FragColor = vec4(video,1.0f);
 
 }

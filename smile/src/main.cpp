@@ -1,12 +1,13 @@
 // Must include our scene first because of GL dependency order
 #include "TVScene.h"
-#include "firstpersoncamera.h"
-#include "trackballcamera.h"
+
+// This will probably already be included by a scene file
+#include "glinclude.h"
 #include "fixedcamera.h"
+#include "trackballcamera.h"
 
 // Includes for GLFW
 #include <GLFW/glfw3.h>
-
 TVScene g_scene;
 TrackballCamera g_camera;
 GLfloat g_focalDepth = 1.0f;
@@ -55,21 +56,21 @@ int main() {
         // Initialisation failed
         glfwTerminate();
     }
-    
+
     // Register error callback
     glfwSetErrorCallback(error_callback);
 
-    // Set our OpenGL version
+		// Set our OpenGL version
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     // Create our window in a platform agnostic manner
-    int width = 1440; int height = 1080;
-    GLFWwindow* window = glfwCreateWindow(width, // width 
+    int width = 960; int height = 720;
+    GLFWwindow* window = glfwCreateWindow(width, // width
                                           height, // height
-                                          "My Title", // title 
+                                          "Smile!", // title
                                           nullptr, // monitor for full screen
                                           nullptr); // return value on failure
 

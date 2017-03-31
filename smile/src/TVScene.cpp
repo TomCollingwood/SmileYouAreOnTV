@@ -8,7 +8,6 @@
 #include <ngl/Image.h>
 
 #define SCREEN_DEF
-
 TVScene::TVScene() : Scene() {
 }
 
@@ -87,7 +86,7 @@ void TVScene::initGL() noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[0]);
     glBindTexture(GL_TEXTURE_2D, m_framebufferTex[0]);
     glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGB, 1440, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+        GL_TEXTURE_2D, 0, GL_RGB, 960, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -97,7 +96,7 @@ void TVScene::initGL() noexcept {
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER,m_rboDepthStencil[0]);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1440, 1080);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 960, 720);
     glFramebufferRenderbuffer(
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[0]
     );
@@ -107,7 +106,7 @@ void TVScene::initGL() noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[1]);
     glBindTexture(GL_TEXTURE_2D, m_framebufferTex[1]);
     glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGB, 1440, 1080, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+        GL_TEXTURE_2D, 0, GL_RGB, 960, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -117,7 +116,7 @@ void TVScene::initGL() noexcept {
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER, m_rboDepthStencil[1]);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 1440, 1080);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 960, 720);
     glFramebufferRenderbuffer(
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[1]
     );
@@ -140,8 +139,67 @@ void TVScene::initGL() noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // setup timer
-    t0 = std::chrono::high_resolution_clock::now();
+    //t0 = std::chrono::high_resolution_clock::now();
 }
+
+GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
+
+    m_width = width; m_height = height;
+    m_ratio = m_width / (float) m_height;
+    glDeleteFramebuffers(1, &m_framebuffer[0]);
+    glDeleteRenderbuffers(1, &m_rboDepthStencil[0]);
+    glDeleteTextures(2,&m_framebufferTex[0]);
+
+    // Generate FrameBuffers and Textures
+    glGenFramebuffers(2, &m_framebuffer[0]);
+    glGenTextures(2, &m_framebufferTex[0]);
+    glGenRenderbuffers(2, &m_rboDepthStencil[0]);
+
+    // FIRST FRAMEBUFFER TEXTURE AND BUFFER
+    glActiveTexture(GL_TEXTURE3);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[0]);
+    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[0]);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[0], 0
+    );
+
+    glBindRenderbuffer(GL_RENDERBUFFER,m_rboDepthStencil[0]);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+    glFramebufferRenderbuffer(
+        GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[0]
+    );
+
+    // SECOND FRAMEBUFFER TEXTURE AND BUFFER
+    glActiveTexture(GL_TEXTURE4);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[1]);
+    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[1]);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[1], 0
+    );
+
+    glBindRenderbuffer(GL_RENDERBUFFER, m_rboDepthStencil[1]);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+    glFramebufferRenderbuffer(
+        GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[1]
+    );
+
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
 
 void TVScene::initTexture(const GLuint& texUnit, GLuint &texId, const char *filename) {
     // Set our active texture unit
