@@ -68,97 +68,69 @@ float beckmannSpecular(
   return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
 }
 
-//taken from https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-
-float rand(vec2 co){return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);}
-float rand (vec2 co, float l) {return rand(vec2(rand(co), l));}
-float rand (vec2 co, float l, float t) {return rand(vec2(rand(co, l), t));}
-
-float perlin(vec2 p, float dim, float time) {
-  vec2 pos = floor(p * dim);
-  vec2 posx = pos + vec2(1.0, 0.0);
-  vec2 posy = pos + vec2(0.0, 1.0);
-  vec2 posxy = pos + vec2(1.0);
-
-  float c = rand(pos, dim, time);
-  float cx = rand(posx, dim, time);
-  float cy = rand(posy, dim, time);
-  float cxy = rand(posxy, dim, time);
-
-  vec2 d = fract(p * dim);
-  d = -0.5 * cos(d * M_PI) + 0.5;
-
-  float ccx = mix(c, cx, d.x);
-  float cycxy = mix(cy, cxy, d.x);
-  float center = mix(ccx, cycxy, d.y);
-
-  return center * 2.0 - 1.0;
-}
-
-vec2 fade(vec2 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
-vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
-
-float cnoise(vec2 P){
-  vec4 Pi = floor(vec4(P.xy,P.xy)) + vec4(0.0, 0.0, 1.0, 1.0);
-  vec4 Pf = fract(vec4(P.xy,P.xy)) - vec4(0.0, 0.0, 1.0, 1.0);
-  Pi = mod(Pi, 289.0); // To avoid truncation effects in permutation
-  vec4 ix = Pi.xzxz;
-  vec4 iy = Pi.yyww;
-  vec4 fx = Pf.xzxz;
-  vec4 fy = Pf.yyww;
-  vec4 i = permute(permute(ix) + iy);
-  vec4 gx = 2.0 * fract(i * 0.0243902439) - 1.0; // 1/41 = 0.024...
-  vec4 gy = abs(gx) - 0.5;
-  vec4 tx = floor(gx + 0.5);
-  gx = gx - tx;
-  vec2 g00 = vec2(gx.x,gy.x);
-  vec2 g10 = vec2(gx.y,gy.y);
-  vec2 g01 = vec2(gx.z,gy.z);
-  vec2 g11 = vec2(gx.w,gy.w);
-  vec4 norm = 1.79284291400159 - 0.85373472095314 *
-    vec4(dot(g00, g00), dot(g01, g01), dot(g10, g10), dot(g11, g11));
-  g00 *= norm.x;
-  g01 *= norm.y;
-  g10 *= norm.z;
-  g11 *= norm.w;
-  float n00 = dot(g00, vec2(fx.x, fy.x));
-  float n10 = dot(g10, vec2(fx.y, fy.y));
-  float n01 = dot(g01, vec2(fx.z, fy.z));
-  float n11 = dot(g11, vec2(fx.w, fy.w));
-  vec2 fade_xy = fade(Pf.xy);
-  vec2 n_x = mix(vec2(n00, n01), vec2(n10, n11), fade_xy.x);
-  float n_xy = mix(n_x.x, n_x.y, fade_xy.y);
-  return 2.3 * n_xy;
-}
-
-// end cit
-
-
-
-// end citation
-
 /************************************************************************************/
 vec3 LightIntensity;
 
-// taken from https://gist.github.com/patriciogonzalezvivo/670c22f3966e662d2f83
-//begin cit
-
-float rand(float n){return fract(sin(n) * 43758.5453123);}
-
-float noise(float p){
-  float fl = floor(p);
-  float fc = fract(p);
-  return mix(rand(fl), rand(fl + 1.0), fc);
+//https://thebookofshaders.com/edit.php#11/wood.frag
+//https://thebookofshaders.com/11/
+float random (in vec2 st) {
+    return fract(sin(dot(st.xy,
+                         vec2(12.9898,78.233)))
+                * 43758.5453123);
 }
 
+// Value noise by Inigo Quilez - iq/2013
+// https://www.shadertoy.com/view/lsf3WH
 
-
-float noise(vec2 n) {
-  const vec2 d = vec2(0.0, 1.0);
-  vec2 b = floor(n), f = smoothstep(vec2(0.0), vec2(1.0), fract(n));
-  return mix(mix(rand(b), rand(b + d.yx), f.x), mix(rand(b + d.xy), rand(b + d.yy), f.x), f.y);
+vec3 random3(vec3 c) {
+    float j = 4096.0*sin(dot(c,vec3(17.0, 59.4, 15.0)));
+    vec3 r;
+    r.z = fract(512.0*j);
+    j *= .125;
+    r.x = fract(512.0*j);
+    j *= .125;
+    r.y = fract(512.0*j);
+    return r-0.5;
 }
-//end cit
+
+const float F3 =  0.3333333;
+const float G3 =  0.1666667;
+float snoise(vec3 p) {
+
+    vec3 s = floor(p + dot(p, vec3(F3)));
+    vec3 x = p - s + dot(s, vec3(G3));
+
+    vec3 e = step(vec3(0.0), x - x.yzx);
+    vec3 i1 = e*(1.0 - e.zxy);
+    vec3 i2 = 1.0 - e.zxy*(1.0 - e);
+
+    vec3 x1 = x - i1 + G3;
+    vec3 x2 = x - i2 + 2.0*G3;
+    vec3 x3 = x - 1.0 + 3.0*G3;
+
+    vec4 w, d;
+
+    w.x = dot(x, x);
+    w.y = dot(x1, x1);
+    w.z = dot(x2, x2);
+    w.w = dot(x3, x3);
+
+    w = max(0.6 - w, 0.0);
+
+    d.x = dot(random3(s), x);
+    d.y = dot(random3(s + i1), x1);
+    d.z = dot(random3(s + i2), x2);
+    d.w = dot(random3(s + 1.0), x3);
+
+    w *= w;
+    w *= w;
+    d *= w;
+
+    return dot(d, vec4(52.0));
+}
+
+// end
+
 
 void main() {
   // Transform your input normal
@@ -185,6 +157,6 @@ void main() {
 
 
     //FragColor = vec4(1.0f,0.0f,0.0f,1.0);
-  FragColor =0.07f*vec4(power,power,power,1.0)*(1+0.1*cnoise(FragmentTexCoord*800));//+ noise(FragmentTexCoord) ;
+  FragColor =0.07f*vec4(power,power,power,1.0)*(1+0.2*snoise(vec3(FragmentTexCoord*600,0.0f)));//+ noise(FragmentTexCoord) ;
 
 }

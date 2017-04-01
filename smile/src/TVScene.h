@@ -26,6 +26,9 @@ private:
     std::unique_ptr<ngl::Obj> m_anistropicMesh, m_matteMesh, m_screenMesh, m_screenQuad, m_wood;
     int amountVertexData = 0;
 
+    int m_windowWidth, m_windowHeight;
+
+
     // timer
     int step=0;
     //std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;

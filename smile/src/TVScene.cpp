@@ -16,6 +16,9 @@ void TVScene::initGL() noexcept {
     // Fire up the NGL machinary (not doing this will make it crash)
     ngl::NGLInit::instance();
 
+    m_height=720;
+    m_width=960;
+
     // Set background colour
     glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 
@@ -48,7 +51,7 @@ void TVScene::initGL() noexcept {
 
     (*shader)["Anisotropic"]->use();
 
-    m_anistropicMesh.reset(new ngl::Obj("models/anis.obj"));
+    m_anistropicMesh.reset(new ngl::Obj("models/anistest.obj"));
     m_anistropicMesh->createVAO();
 
     //(*shader)["Matte"]->use();
@@ -69,20 +72,6 @@ void TVScene::initGL() noexcept {
 
     glEnable(GL_TEXTURE_2D);
 
-    // load up our textures
-    initTexture(0, m_diffTex, "images/diffuseLQ.jpg");
-    initTexture(1, m_specTex, "images/specLQ.jpg");
-    initTexture(2, m_anasTex, "images/anisLQ.jpg");
-
-
-    // Set the active texture unit on the GPU
-    GLint pid = shader->getProgramID("Anisotropic");
-    glUniform1i(glGetUniformLocation(pid, "DiffuseTexure"), //location of uniform
-                       0); // texture unit for colour
-    glUniform1i(glGetUniformLocation(pid, "SpecTexure"), //location of uniform
-                       1); // texture unit for normas
-    glUniform1i(glGetUniformLocation(pid, "AnasTexure"), //location of uniform
-                       2); // texture unit for normas
 
 
     // Generate FrameBuffers and Textures
@@ -95,7 +84,7 @@ void TVScene::initGL() noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[0]);
     glBindTexture(GL_TEXTURE_2D, m_framebufferTex[0]);
     glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGB, 960, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+        GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -105,7 +94,7 @@ void TVScene::initGL() noexcept {
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER,m_rboDepthStencil[0]);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 960, 720);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
     glFramebufferRenderbuffer(
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[0]
     );
@@ -115,7 +104,7 @@ void TVScene::initGL() noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[1]);
     glBindTexture(GL_TEXTURE_2D, m_framebufferTex[1]);
     glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGB, 960, 720, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+        GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -125,18 +114,26 @@ void TVScene::initGL() noexcept {
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER, m_rboDepthStencil[1]);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 960, 720);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
     glFramebufferRenderbuffer(
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[1]
     );
+
+
 
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
     (*shader)["ScreenQuad"]->use();
-    pid = shader->getProgramID("ScreenQuad");
+    GLuint pid = shader->getProgramID("ScreenQuad");
     glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3);
+    glUniform1i(glGetUniformLocation(pid, "height"), m_height);
+    glUniform1i(glGetUniformLocation(pid, "height"), m_width);
+
+
+
+
 
     (*shader)["TVScreen"]->use();
     pid = shader->getProgramID("TVScreen");
@@ -144,6 +141,8 @@ void TVScene::initGL() noexcept {
     initTexture(5, m_anasTex, "images/noise.jpg");
     glUniform1i(glGetUniformLocation(pid, "noiseTex"), //location of uniform
                        5); // texture unit for normas
+
+
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -204,6 +203,11 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[1]
     );
 
+    ngl::ShaderLib *shader=ngl::ShaderLib::instance();
+
+    GLuint pid = shader->getProgramID("ScreenQuad");
+    glUniform1i(glGetUniformLocation(pid, "height"), m_height);
+    glUniform1i(glGetUniformLocation(pid, "height"), m_width);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
