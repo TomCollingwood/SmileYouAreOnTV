@@ -39,6 +39,10 @@ void TVScene::initGL() noexcept {
     shader->loadShader("TVScreen",
                        "shaders/TVScreenVertex.glsl",
                        "shaders/TVScreenFragment.glsl");
+    shader->loadShader("Wood",
+                       "shaders/WoodVertex.glsl",
+                       "shaders/WoodFragment.glsl");
+
 
 
 
@@ -58,12 +62,17 @@ void TVScene::initGL() noexcept {
     m_screenQuad.reset(new ngl::Obj("models/screenQUAD.obj"));
     m_screenQuad->createVAO();
 
+    m_wood.reset(new ngl::Obj("models/wood.obj"));
+    m_wood->createVAO();
+
+
+
     glEnable(GL_TEXTURE_2D);
 
     // load up our textures
-    initTexture(0, m_diffTex, "images/diffuse.jpg");
-    initTexture(1, m_specTex, "images/spec.jpg");
-    initTexture(2, m_anasTex, "images/anis.jpg");
+    initTexture(0, m_diffTex, "images/diffuseLQ.jpg");
+    initTexture(1, m_specTex, "images/specLQ.jpg");
+    initTexture(2, m_anasTex, "images/anisLQ.jpg");
 
 
     // Set the active texture unit on the GPU
@@ -340,6 +349,27 @@ void TVScene::paintGL() noexcept {
                        glm::value_ptr(N)); // a raw pointer to the data
 
 
+    (*shader)["Wood"]->use();
+    // MATTTE
+    pid = shader->getProgramID("Wood");
+    glUniformMatrix4fv(glGetUniformLocation(pid, "MVP"), //location of uniform
+                       1, // how many matrices to transfer
+                       false, // whether to transpose matrix
+                       glm::value_ptr(MVP)); // a raw pointer to the data
+    glUniformMatrix4fv(glGetUniformLocation(pid, "MV"), //location of uniform
+                       1, // how many matrices to transfer
+                       false, // whether to transpose matrix
+                       glm::value_ptr(MV)); // a raw pointer to the data
+    glUniformMatrix3fv(glGetUniformLocation(pid, "N"), //location of uniform
+                       1, // how many matrices to transfer
+                       true, // whether to transpose matrix
+                       glm::value_ptr(N)); // a raw pointer to the data
+    glUniformMatrix3fv(glGetUniformLocation(pid, "N"), //location of uniform
+                       1, // how many matrices to transfer
+                       true, // whether to transpose matrix
+                       glm::value_ptr(N)); // a raw pointer to the data
+
+
     // TIMER
 
     //
@@ -369,6 +399,9 @@ void TVScene::paintGL() noexcept {
 
     (*shader)["Matte"]->use();
     m_matteMesh->draw();
+
+    (*shader)["Wood"]->use();
+    m_wood->draw();
 
 #ifdef SCREEN_DEF
     (*shader)["TVScreen"]->use();

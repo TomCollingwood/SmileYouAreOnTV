@@ -51,27 +51,6 @@ uniform MaterialInfo Material = MaterialInfo(
             3.0                    // Shininess
             );
 
-// below is taken from https://github.com/stackgl/glsl-specular-beckmann
-// begin citation
-
-float beckmannDistribution(float x, float roughness) {
-  float NdotH = max(x, 0.0001);
-  float cos2Alpha = NdotH * NdotH;
-  float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
-  float roughness2 = roughness * roughness;
-  float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
-  return exp(tan2Alpha / roughness2) / denom;
-}
-
-float beckmannSpecular(
-  vec3 lightDirection,
-  vec3 viewDirection,
-  vec3 surfaceNormal,
-  float roughness) {
-  return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
-}
-
-// end citation
 
 /************************************************************************************/
 
@@ -106,7 +85,14 @@ vec3 getVideo(vec2 uv)
   //float vShift = 0.4*onOff(2.,3.,.9)*(sin(iGlobalTime)*sin(iGlobalTime*20.) +
   //                   (0.5 + 0.1*sin(iGlobalTime*200.)*cos(iGlobalTime)));
   look.y = mod(look.y ,1);//+ vShift, 1.);
-  vec3 video = vec3(texture(screenTexture,look));
+  vec3 video ;//= vec3(texture(screenTexture,look));
+
+
+
+
+  video[0]= texture(screenTexture,vec2(look.x+0.005f,look.y)).r;
+  video[1]= texture(screenTexture,vec2(look.x,look.y)).g;
+  video[2]= texture(screenTexture,vec2(look.x-0.005f,look.y)).b;
   return video;
 }
 //end of citation
@@ -115,9 +101,32 @@ vec3 getVideo(vec2 uv)
 vec3 LightIntensity;
 
 
+// below is taken from https://github.com/stackgl/glsl-specular-beckmann
+// begin citation
+
+float beckmannDistribution(float x, float roughness) {
+  float NdotH = max(x, 0.0001);
+  float cos2Alpha = NdotH * NdotH;
+  float tan2Alpha = (cos2Alpha - 1.0) / cos2Alpha;
+  float roughness2 = roughness * roughness;
+  float denom = 3.141592653589793 * roughness2 * cos2Alpha * cos2Alpha;
+  return exp(tan2Alpha / roughness2) / denom;
+}
+
+float beckmannSpecular(
+  vec3 lightDirection,
+  vec3 viewDirection,
+  vec3 surfaceNormal,
+  float roughness) {
+  return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
+}
+///end
+
+
 
 
 void main() {
+  //-----------------------------------------------------------------------------
   // Transform your input normal
   vec3 n = normalize( FragmentNormal );
 
@@ -129,40 +138,20 @@ void main() {
 
   // Reflect the light about the surface normal
   vec3 r = reflect( -s, n );
-
-  vec3 refractRGB[3];
-  refractRGB[0] = normalize(refract(v,n,2.01f));
-  refractRGB[1] = normalize(refract(v,n,2.05f));
-  refractRGB[2] = normalize(refract(v,n,2.1f));
-
-  // Compute the light from the ambient, diffuse and specular components
-  // PHONG
-
-  vec3 screenFrag = texture(screenTexture,FragmentTexCoord).rgb;
-
-  float Ks = beckmannSpecular(s,v,n,0.9);
-  LightIntensity = (
-          Light.La * screenFrag );//+
-          //Light.Ld * screenFrag * max( dot(s, FragmentNormal), 0.0 ) +
-          //Light.Ls * Material.Ks * pow( max( dot(r,v), 0.0 ), 10.0f ));
-
-
-    //FragColor = vec4(1.0f,0.0f,0.0f,1.0);
+  //-----------------------------------------------------------------------------
 
   vec2 uv = screenDistort(FragmentTexCoord);
-
-  //uv.x += refractRGB[0].x*0.0001f;
-  //uv.y += refractRGB[0].y*0.0001f;
 
   float vigAmt = 3.+.3*sin(iGlobalTime + 5.*cos(iGlobalTime*5.));
   float vignette = (1.-vigAmt*(uv.y-.5)*(uv.y-.5))*(1.-vigAmt*(uv.x-.5)*(uv.x-.5));
 
   vec3 video = getVideo(uv);
+
+
+
   video+=noise(FragmentTexCoord*1.5f)/10.0f;
   video*=vignette;
-  video[0]+= length(v)*0.1f;//refractRGB[0].x*0.01f + refractRGB[0].y*0.01f;
-  //video[1]+= refractRGB[1].x*0.01f + refractRGB[1].y*0.01f;
-  //video[2]+= refractRGB[2].x*0.01f + refractRGB[2].y*0.01f;
-  FragColor = vec4(video,1.0f);
+  float power = 0.001f* beckmannSpecular(s,v,n,0.03);
 
+  FragColor = vec4(video,1.0f)+vec4(power,power,power,1.0f);
 }
