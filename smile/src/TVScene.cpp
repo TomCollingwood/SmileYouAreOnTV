@@ -76,25 +76,26 @@ void TVScene::initGL() noexcept {
 
     // Generate FrameBuffers and Textures
     glGenFramebuffers(2, &m_framebuffer[0]);
+    glGenFramebuffers(2, &m_prealiasedframebuffer[0]);
     glGenTextures(2, &m_framebufferTex[0]);
     glGenRenderbuffers(2, &m_rboDepthStencil[0]);
 
     // FIRST FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE3);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[0]);
-    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[0]);
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_framebufferTex[0]);
+    glTexImage2DMultisample(
+        GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, m_width, m_height, GL_FALSE
     );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[0], 0
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_framebufferTex[0], 0
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER,m_rboDepthStencil[0]);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_DEPTH24_STENCIL8, m_width, m_height);
     glFramebufferRenderbuffer(
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[0]
     );
@@ -102,19 +103,18 @@ void TVScene::initGL() noexcept {
     // SECOND FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE4);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[1]);
-    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[1]);
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+    glTexImage2DMultisample(
+        GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, m_width, m_height, GL_FALSE
     );
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[1], 0
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_framebufferTex[1], 0
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER, m_rboDepthStencil[1]);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, m_width, m_height);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8,GL_DEPTH24_STENCIL8, m_width, m_height);
     glFramebufferRenderbuffer(
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[1]
     );
@@ -391,6 +391,9 @@ void TVScene::paintGL() noexcept {
       otherFrame=1;
       frame=true;
     }
+
+
+
     //DRAW TO FRAMEBUFFER
 #ifdef SCREEN_DEF
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[whichFrame]);
@@ -420,11 +423,26 @@ void TVScene::paintGL() noexcept {
     glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    (*shader)["ScreenQuad"]->use();
-    pid = shader->getProgramID("ScreenQuad");
-    glActiveTexture(GL_TEXTURE3+whichFrame);
-    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[whichFrame]);
-    glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3+whichFrame);
+
+     (*shader)["Anisotropic"]->use();
+     m_anistropicMesh->draw();
+
+     (*shader)["Matte"]->use();
+     m_matteMesh->draw();
+
+     (*shader)["Wood"]->use();
+     m_wood->draw();
+
+     (*shader)["TVScreen"]->use();
+     glActiveTexture(GL_TEXTURE3+otherFrame);
+     pid = shader->getProgramID("TVScreen");
+     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3+otherFrame);
+     m_screenMesh->draw();
+
+//    pid = shader->getProgramID("ScreenQuad");
+//    glActiveTexture(GL_TEXTURE3+whichFrame);
+//    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[whichFrame]);
+//    glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3+whichFrame);
 
     m_screenQuad->draw();
 #endif

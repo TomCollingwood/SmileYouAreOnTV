@@ -22,6 +22,7 @@ private:
     GLuint m_rboDepthStencil[2];
     GLuint m_framebufferTex[2];
     GLuint m_framebuffer[2];
+    GLuint m_prealiasedframebuffer[2];
     bool frame = false;
     std::unique_ptr<ngl::Obj> m_anistropicMesh, m_matteMesh, m_screenMesh, m_screenQuad, m_wood;
     int amountVertexData = 0;

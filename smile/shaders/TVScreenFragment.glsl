@@ -17,6 +17,15 @@ in mat4 _MV;
 // This is no longer a built-in variable
 layout (location=0) out vec4 FragColor;
 
+float kernel[9];
+vec2 offsets[9];
+vec3 sampleTex[9];
+
+vec3 col;
+
+
+
+
 /************************************************************************************/
 
 // Structure for holding light parameters
@@ -88,11 +97,42 @@ vec3 getVideo(vec2 uv)
   vec3 video ;//= vec3(texture(screenTexture,look));
 
 
+  // below adapted from https://learnopengl.com/#!Advanced-OpenGL/Framebuffers Accesed 17/02
+
+  float offset = 0.003;
+  offsets = vec2[](
+  vec2(-offset, offset),  // top-left
+  vec2(0.0f,    offset),  // top-center
+  vec2(offset,  offset),  // top-right
+  vec2(-offset, 0.0f),    // center-left
+  vec2(0.0f,    0.0f),    // center-center
+  vec2(offset,  0.0f),    // center-right
+  vec2(-offset, -offset), // bottom-left
+  vec2(0.0f,    -offset), // bottom-center
+  vec2(offset,  -offset)  // bottom-right
+  );
+  kernel = float[](
+  0.0625, 0.125, 0.0625,
+  0.125,  0.25,  0.125,
+  0.0625, 0.125, 0.0625
+  );
+
+  vec3 col = vec3(0.0);
+              for(int i = 0; i < 9; i++)
+              {
+              sampleTex[i].r = vec3(texture(screenTexture, vec2(look.x + offsets[i].x + 0.005f,look.y+ offsets[i].y))).r;
+               sampleTex[i].g = vec3(texture(screenTexture, vec2(look.x + offsets[i].x,look.y+ offsets[i].y))).g;
+                sampleTex[i].b = vec3(texture(screenTexture, vec2(look.x + offsets[i].x - 0.005f,look.y+ offsets[i].y))).b;
+              col += sampleTex[i] * kernel[i];
+              }
+              video = col;
 
 
-  video[0]= texture(screenTexture,vec2(look.x+0.005f,look.y)).r;
-  video[1]= texture(screenTexture,vec2(look.x,look.y)).g;
-  video[2]= texture(screenTexture,vec2(look.x-0.005f,look.y)).b;
+
+
+//  video[0]= texture(screenTexture,vec2(look.x+0.005f,look.y)).r;
+//  video[1]= texture(screenTexture,vec2(look.x,look.y)).g;
+//  video[2]= texture(screenTexture,vec2(look.x-0.005f,look.y)).b;
   return video;
 }
 //end of citation
@@ -124,7 +164,6 @@ float beckmannSpecular(
 
 
 
-
 void main() {
   //-----------------------------------------------------------------------------
   // Transform your input normal
@@ -151,7 +190,17 @@ void main() {
 
   video+=noise(FragmentTexCoord*1.5f)/10.0f;
   video*=vignette;
+
+
+
+
+
   float power = 0.001f* beckmannSpecular(s,v,n,0.03);
 
   FragColor = vec4(video,1.0f)+vec4(power,power,power,1.0f);
+
+
+
+
+
 }

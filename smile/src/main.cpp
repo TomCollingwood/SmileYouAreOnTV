@@ -65,6 +65,8 @@ int main() {
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+		glfwWindowHint(GLFW_SAMPLES,8);
+
 
     // Create our window in a platform agnostic manner
     int width = 960; int height = 720;
