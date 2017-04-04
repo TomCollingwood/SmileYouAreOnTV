@@ -6,6 +6,9 @@
 uniform sampler2D screenTexture;
 uniform int iGlobalTime;
 
+uniform int width;
+uniform int height;
+
 uniform float _xscale;
 uniform float _yscale;
 uniform float _brightness;
@@ -123,23 +126,52 @@ vec3 getVideo(vec2 uv,float xscale, float yscale)
 
   // below adapted from https://learnopengl.com/#!Advanced-OpenGL/Framebuffers Accesed 17/02
 
-  float offset = 0.003;
+
+  float fwidth = width;
+  float fheight = height;
+  float offsetx = 1.0f/fwidth;
+  float offsety = 1.0f/fheight;
+
+
   offsets = vec2[](
-  vec2(-offset, offset),  // top-left
-  vec2(0.0f,    offset),  // top-center
-  vec2(offset,  offset),  // top-right
-  vec2(-offset, 0.0f),    // center-left
-  vec2(0.0f,    0.0f),    // center-center
-  vec2(offset,  0.0f),    // center-right
-  vec2(-offset, -offset), // bottom-left
-  vec2(0.0f,    -offset), // bottom-center
-  vec2(offset,  -offset)  // bottom-right
-  );
-  kernel = float[](
-  0.0625, 0.125, 0.0625,
-  0.125,  0.25,  0.125,
-  0.0625, 0.125, 0.0625
-  );
+    vec2(-offsetx, offsety),  // top-left
+    vec2(0.0f,    offsety),  // top-center
+    vec2(offsetx,  offsety),  // top-right
+    vec2(-offsetx, 0.0f),    // center-left
+    vec2(0.0f,    0.0f),    // center-center
+    vec2(offsetx,  0.0f),    // center-right
+    vec2(-offsetx, -offsety), // bottom-left
+    vec2(0.0f,    -offsety), // bottom-center
+    vec2(offsetx,  -offsety)  // bottom-right
+    );
+    kernel = float[](
+    0.0625, 0.125, 0.0625,
+    0.125,  0.25,  0.125,
+    0.0625, 0.125, 0.0625
+    );
+//  offsets = vec2[](
+//  vec2(-3*ox, 3*oy),vec2(-2*ox, 3*oy),vec2(-ox, 3*oy),vec2(0, 3*oy),vec2(ox, 3*oy),vec2(2*ox, 3*oy),vec2(3*ox, 3*oy),
+//  vec2(-3*ox, 2*oy),vec2(-2*ox, 2*oy),vec2(-ox, 2*oy),vec2(0, 2*oy),vec2(ox, 2*oy),vec2(2*ox, 2*oy),vec2(3*ox, 2*oy),
+//  vec2(-3*ox, oy),vec2(-2*ox, oy),vec2(-ox, oy),vec2(0, oy),vec2(ox, oy),vec2(2*ox, oy),vec2(3*ox, oy),
+//  vec2(-3*ox, 0),vec2(-2*ox, 0),vec2(-ox, 0),vec2(0, 0),vec2(ox, 0),vec2(2*ox, 0),vec2(3*ox, 0),
+//  vec2(-3*ox, -oy),vec2(-2*ox, -oy),vec2(-ox, -oy),vec2(0, oy),vec2(ox, -oy),vec2(2*ox, -oy),vec2(3*ox, -oy),
+//  vec2(-3*ox, -2*oy),vec2(-2*ox, -2*oy),vec2(-ox, -2*oy),vec2(0, -2*oy),vec2(ox, -2*oy),vec2(2*ox, -2*oy),vec2(3*ox, -2*oy),
+//  vec2(-3*ox, -3*oy),vec2(-2*ox, -3*oy),vec2(-ox, -3*oy),vec2(0, -3*oy),vec2(ox, -3*oy),vec2(2*ox, -3*oy),vec2(3*ox, -3*oy),
+//      );
+//  kernel = float[](
+//  0.0625, 0.125, 0.0625,
+//  0.125,  0.25,  0.125,
+//  0.0625, 0.125, 0.0625
+//  );
+//kernel = float[](
+//  0.00000067,	0.00002292,	0.00019117,	0.00038771,	0.00019117,	0.00002292,	0.00000067,
+//  0.00002292,	0.00078634,	0.00655965,	0.01330373,	0.00655965,	0.00078633,	0.00002292,
+//  0.00019117,	0.00655965,	0.05472157,	0.11098164,	0.05472157,	0.00655965,	0.00019117,
+//  0.00038771,	0.01330373,	0.11098164,	0.22508352,	0.11098164,	0.01330373,	0.00038771,
+//  0.00019117,	0.00655965,	0.05472157,	0.11098164,	0.05472157,	0.00655965,	0.00019117,
+//  0.00002292,	0.00078633,	0.00655965,	0.01330373,	0.00655965,	0.00078633,	0.00002292,
+//  0.00000067,	0.00002292,	0.00019117,	0.00038771,	0.00019117,	0.00002292,	0.00000067
+//            );
 
   look.x*=xscale;
   look.y*=yscale;

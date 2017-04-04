@@ -111,15 +111,15 @@ void TVScene::initGL() noexcept {
     // FIRST FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE3);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[0]);
-    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_framebufferTex[0]);
-    glTexImage2DMultisample(
-        GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, m_width, m_height, GL_FALSE
-    );
-    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[0]);
+    glTexImage2D(
+           GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+       );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_framebufferTex[0], 0
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[0], 0
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER,m_rboDepthStencil[0]);
@@ -131,14 +131,14 @@ void TVScene::initGL() noexcept {
     // SECOND FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE4);
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[1]);
-    glTexImage2DMultisample(
-        GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, m_width, m_height, GL_FALSE
-    );
-    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(
+           GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+       );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glFramebufferTexture2D(
-        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_framebufferTex[1], 0
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_framebufferTex[1], 0
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER, m_rboDepthStencil[1]);
@@ -157,7 +157,7 @@ void TVScene::initGL() noexcept {
     GLuint pid = shader->getProgramID("ScreenQuad");
     glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3);
     glUniform1i(glGetUniformLocation(pid, "height"), m_height);
-    glUniform1i(glGetUniformLocation(pid, "height"), m_width);
+    glUniform1i(glGetUniformLocation(pid, "width"), m_width);
 
 
 
@@ -180,12 +180,33 @@ void TVScene::initGL() noexcept {
 
 GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
 
+  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
-
-
-
+    GLuint pid = shader->getProgramID("TVScreen");
 
     m_width = width; m_height = height;
+
+
+    if((float)m_width/(float)m_height>(4.0f/3.0f))
+    {
+      xscale=(4.0f/3.0f)/((float)m_width/(float)m_height);
+      //printf("%f",xscale);
+    }
+    else
+    {
+      yscale=(3.0f/4.0f)/((float)m_height/(float)m_width);
+      printf("%f",yscale);
+    }
+
+    glUniform1f(glGetUniformLocation(pid, "_xscale"), xscale);
+    glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
+
+    glUniform1i(glGetUniformLocation(pid, "height"), m_height);
+    glUniform1i(glGetUniformLocation(pid, "width"), m_width);
+
+
+
+
     m_ratio = m_width / (float) m_height;
     glDeleteFramebuffers(1, &m_framebuffer[0]);
     glDeleteRenderbuffers(1, &m_rboDepthStencil[0]);
@@ -236,9 +257,8 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
         GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rboDepthStencil[1]
     );
 
-    ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
-    GLuint pid = shader->getProgramID("ScreenQuad");
+    pid = shader->getProgramID("ScreenQuad");
     glUniform1i(glGetUniformLocation(pid, "height"), m_height);
     glUniform1i(glGetUniformLocation(pid, "height"), m_width);
 
@@ -369,14 +389,15 @@ void TVScene::paintGL() noexcept {
       tvsteps++;
       //60 frames to squeeze y
       //30 frames to squeeze x
-      yscale=1.0f + 300.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
+      float ouryscale=yscale + 300.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
+      float ourxscale=xscale + 20.0f*(41-glm::clamp(tvsteps,41,70));
+
       brightness= 1.0f + 50.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
 
-      glUniform1f(glGetUniformLocation(pid, "_xscale"), xscale);
-      glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
+      glUniform1f(glGetUniformLocation(pid, "_xscale"), ourxscale);
+      glUniform1f(glGetUniformLocation(pid, "_yscale"), ouryscale);
       glUniform1f(glGetUniformLocation(pid, "_brightness"), brightness);
 
-      xscale=1.0f + 20.0f*(41-glm::clamp(tvsteps,41,70));
 
       if(tvsteps==70)
       {
@@ -394,14 +415,15 @@ void TVScene::paintGL() noexcept {
       glUniform1i(glGetUniformLocation(pid, "_tvon"), tvon);
       //60 frames to squeeze y
       //30 frames to squeeze x
-      yscale=1.0f + 300.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
+      float ouryscale=yscale + 300.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
+      float ourxscale=xscale + 20.0f*(41-glm::clamp(tvsteps,41,70));
+
       brightness= 1.0f + 50.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
 
-      glUniform1f(glGetUniformLocation(pid, "_xscale"), xscale);
-      glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
+      glUniform1f(glGetUniformLocation(pid, "_xscale"), ourxscale);
+      glUniform1f(glGetUniformLocation(pid, "_yscale"), ouryscale);
       glUniform1f(glGetUniformLocation(pid, "_brightness"), brightness);
 
-      xscale=1.0f + 20.0f*(41-glm::clamp(tvsteps,41,70));
 
       if(tvsteps==0)
       {
@@ -539,7 +561,26 @@ void TVScene::paintGL() noexcept {
    {
      static int spongesteps =0;
      static int spongeframe =1;
-     animate(&spongesteps,&spongeframe,2,"images/sponge",6);
+     animate(&spongesteps,&spongeframe,2,"images/spongebob/sponge",".jpg",5,5);
+     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 2);
+   }
+   else if(channel==4)
+   {
+     static int spongesteps2 =0;
+     static int spongeframe2 =1;
+     animate(&spongesteps2,&spongeframe2,2,"images/bogart/frame_","_delay-0.1s.jpg",66,4);
+     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 2);
+   }
+   else if(channel==5)
+   {
+     static int spongesteps3 =0;
+     static int spongeframe3 =1;
+     animate(&spongesteps3,&spongeframe3,2,"images/homealone/homealone",".jpg",2414,2);
+     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 2);
+   }
+   else if(channel==6)
+   {
+     initTexture(2, m_testscreen, "images/testscreen.jpg");
      glUniform1i(glGetUniformLocation(pid, "screenTexture"), 2);
    }
    m_screenMesh->draw();
@@ -550,17 +591,17 @@ void TVScene::paintGL() noexcept {
 
 }
 
-void TVScene::animate(int *steps, int *frame, int textureID, std::string path, int numberOfFrames)
+void TVScene::animate(int *steps, int *frame, int textureID, std::string pathbegin, std::string pathend,int numberOfFrames,int speed)
 {
   (*steps)++;
-  if((*steps)%5==0)
+  if((*steps)%speed==0)
   {
     (*frame)++;
-    if((*frame)>numberOfFrames) (*frame)=1;
+    if((*frame)>numberOfFrames) (*frame)=0;
     std::ostringstream sstream;
-    sstream << path.c_str() << (*frame)<<".jpg";
+    sstream << pathbegin.c_str() << (*frame)<<pathend.c_str();
     std::string query = sstream.str();
-    initTexture(2, m_testscreen, query.c_str());
+    initTexture(textureID, m_testscreen, query.c_str());
   }
 
 }

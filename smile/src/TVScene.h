@@ -20,7 +20,7 @@ public:
 
   void handleKey(int _key);
 
-  void animate(int *steps, int *frame, int textureID, std::string path, int numberOfFrames);
+  void animate(int *steps, int *frame, int textureID, std::string pathbegin, std::string pathend,int numberOfFrames, int speed);
 
 private:
   GLuint m_rboDepthStencil[2];
@@ -34,10 +34,12 @@ private:
   float yscale=1.0f;
   float brightness =1.0f;
   int channel =0;
-  int maxChannel = 3;
+  int maxChannel = 6;
   int tvon = 1;
   int tvstate = 0;
   int tvsteps=0;
+
+
   bool changechannel=false;
   bool frame = false;
   std::unique_ptr<ngl::Obj> m_anistropicMesh, m_matteMesh, m_screenMesh, m_screenQuad, m_wood;
