@@ -37,6 +37,7 @@ void key_callback(GLFWwindow* window, int key, int /*scancode*/, int action, int
         case GLFW_KEY_ESCAPE: //exit the application
             glfwSetWindowShouldClose(window, true);
         }
+        g_scene.handleKey(key);
     }
     // Any other keypress should be handled by our camera
     g_camera.handleKey(key, (action == GLFW_PRESS) );

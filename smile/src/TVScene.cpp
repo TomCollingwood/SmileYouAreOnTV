@@ -6,11 +6,37 @@
 #include <ngl/VAOPrimitives.h>
 #include <ngl/ShaderLib.h>
 #include <ngl/Image.h>
+#include <string>
+#include <sstream>
+
 
 #define SCREEN_DEF
 TVScene::TVScene() : Scene() {
 }
 
+void TVScene::handleKey(int _key)
+{
+    switch(_key) {
+    case GLFW_KEY_A: //exit the application
+        channel--;
+        if(channel<0) channel=0;
+        else changechannel=true;
+        break;
+    case GLFW_KEY_D:
+        channel++;
+        if(channel>maxChannel) channel=maxChannel;
+        else changechannel=true;
+        break;
+    case GLFW_KEY_S:
+        if(tvon) tvstate = 1;
+        else
+        {
+          tvstate = 2;
+          tvsteps=70;
+        }
+        break;
+    }
+}
 
 void TVScene::initGL() noexcept {
     // Fire up the NGL machinary (not doing this will make it crash)
@@ -72,7 +98,9 @@ void TVScene::initGL() noexcept {
 
     glEnable(GL_TEXTURE_2D);
 
-
+    initTexture(0, m_controls, "images/controlstexture.jpg");
+    initTexture(1, m_title, "images/titletexture.jpg");
+    initTexture(2, m_testscreen, "images/freaky.jpg");
 
     // Generate FrameBuffers and Textures
     glGenFramebuffers(2, &m_framebuffer[0]);
@@ -138,10 +166,10 @@ void TVScene::initGL() noexcept {
     (*shader)["TVScreen"]->use();
     pid = shader->getProgramID("TVScreen");
     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3);
-    initTexture(5, m_anasTex, "images/noise.jpg");
-    glUniform1i(glGetUniformLocation(pid, "noiseTex"), //location of uniform
-                       5); // texture unit for normas
-
+    glUniform1f(glGetUniformLocation(pid, "_xscale"), xscale);
+    glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
+    glUniform1f(glGetUniformLocation(pid, "_brightness"), brightness);
+    glUniform1i(glGetUniformLocation(pid, "_tvon"), tvon);
 
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -151,6 +179,11 @@ void TVScene::initGL() noexcept {
 }
 
 GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
+
+
+
+
+
 
     m_width = width; m_height = height;
     m_ratio = m_width / (float) m_height;
@@ -329,6 +362,58 @@ void TVScene::paintGL() noexcept {
                        true, // whether to transpose matrix
                        glm::value_ptr(N)); // a raw pointer to the data
 
+    // HANLDE THE TV OFF / ON / CHANNELS
+
+    if(tvstate==1) // turning on
+    {
+      tvsteps++;
+      //60 frames to squeeze y
+      //30 frames to squeeze x
+      yscale=1.0f + 300.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
+      brightness= 1.0f + 50.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
+
+      glUniform1f(glGetUniformLocation(pid, "_xscale"), xscale);
+      glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
+      glUniform1f(glGetUniformLocation(pid, "_brightness"), brightness);
+
+      xscale=1.0f + 20.0f*(41-glm::clamp(tvsteps,41,70));
+
+      if(tvsteps==70)
+      {
+        tvsteps=0;
+        tvstate=0;
+
+        tvon=0;
+        glUniform1i(glGetUniformLocation(pid, "_tvon"), tvon);
+      }
+    }
+    else if(tvstate==2)
+    {
+      tvsteps--;
+      tvon=1;
+      glUniform1i(glGetUniformLocation(pid, "_tvon"), tvon);
+      //60 frames to squeeze y
+      //30 frames to squeeze x
+      yscale=1.0f + 300.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
+      brightness= 1.0f + 50.0f*((float)glm::clamp(tvsteps,0,60))/60.0f;
+
+      glUniform1f(glGetUniformLocation(pid, "_xscale"), xscale);
+      glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
+      glUniform1f(glGetUniformLocation(pid, "_brightness"), brightness);
+
+      xscale=1.0f + 20.0f*(41-glm::clamp(tvsteps,41,70));
+
+      if(tvsteps==0)
+      {
+        tvsteps=0;
+        tvstate=0;
+
+
+      }
+    }
+
+
+
     step++;
     glUniform1i(glGetUniformLocation(pid, "iGlobalTime"), step);
 
@@ -396,56 +481,86 @@ void TVScene::paintGL() noexcept {
 
     //DRAW TO FRAMEBUFFER
 #ifdef SCREEN_DEF
-    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[whichFrame]);
-    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer[whichFrame]);
+  glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
-    glEnable(GL_DEPTH_TEST);
-    (*shader)["Anisotropic"]->use();
-    m_anistropicMesh->draw();
+  glEnable(GL_DEPTH_TEST);
+  (*shader)["Anisotropic"]->use();
+  m_anistropicMesh->draw();
 
-    (*shader)["Matte"]->use();
-    m_matteMesh->draw();
+  (*shader)["Matte"]->use();
+  m_matteMesh->draw();
 
-    (*shader)["Wood"]->use();
-    m_wood->draw();
+  (*shader)["Wood"]->use();
+  m_wood->draw();
 
 #ifdef SCREEN_DEF
-    (*shader)["TVScreen"]->use();
-    glActiveTexture(GL_TEXTURE3+otherFrame);
-    pid = shader->getProgramID("TVScreen");
-    glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3+otherFrame);
-    m_screenMesh->draw();
+  (*shader)["TVScreen"]->use();
+  if(channel==2)
+  {
+  pid = shader->getProgramID("TVScreen");
+  glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3+otherFrame);
+  m_screenMesh->draw();
+  }
 
-    // DRAW TO SCREEN
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glEnable(GL_DEPTH_TEST);
-    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // DRAW TO SCREEN
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glEnable(GL_DEPTH_TEST);
+  glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-     (*shader)["Anisotropic"]->use();
-     m_anistropicMesh->draw();
+   (*shader)["Anisotropic"]->use();
+   m_anistropicMesh->draw();
 
-     (*shader)["Matte"]->use();
-     m_matteMesh->draw();
+   (*shader)["Matte"]->use();
+   m_matteMesh->draw();
 
-     (*shader)["Wood"]->use();
-     m_wood->draw();
+   (*shader)["Wood"]->use();
+   m_wood->draw();
 
-     (*shader)["TVScreen"]->use();
-     glActiveTexture(GL_TEXTURE3+otherFrame);
-     pid = shader->getProgramID("TVScreen");
-     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3+otherFrame);
-     m_screenMesh->draw();
+   (*shader)["TVScreen"]->use();
 
-//    pid = shader->getProgramID("ScreenQuad");
-//    glActiveTexture(GL_TEXTURE3+whichFrame);
-//    glBindTexture(GL_TEXTURE_2D, m_framebufferTex[whichFrame]);
-//    glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3+whichFrame);
+   pid = shader->getProgramID("TVScreen");
+   if(channel==2)
+   {
+      glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3+otherFrame);
+   }
+   else if(channel==0)
+   {
+       glUniform1i(glGetUniformLocation(pid, "screenTexture"), 0);
+   }
+   else if(channel==1)
+   {
+       glUniform1i(glGetUniformLocation(pid, "screenTexture"), 1);
+   }
+   else if(channel==3)
+   {
+     static int spongesteps =0;
+     static int spongeframe =1;
+     animate(&spongesteps,&spongeframe,2,"images/sponge",6);
+     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 2);
+   }
+   m_screenMesh->draw();
 
-    m_screenQuad->draw();
+  //m_screenQuad->draw();
 #endif
 
+
+}
+
+void TVScene::animate(int *steps, int *frame, int textureID, std::string path, int numberOfFrames)
+{
+  (*steps)++;
+  if((*steps)%5==0)
+  {
+    (*frame)++;
+    if((*frame)>numberOfFrames) (*frame)=1;
+    std::ostringstream sstream;
+    sstream << path.c_str() << (*frame)<<".jpg";
+    std::string query = sstream.str();
+    initTexture(2, m_testscreen, query.c_str());
+  }
 
 }

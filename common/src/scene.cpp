@@ -18,6 +18,7 @@ GLvoid Scene::resizeGL(GLint width, GLint height) noexcept {
     m_ratio = m_width / (float) m_height;
 }
 
+
 /**
  * @brief Scene::CheckError retrieves the last GL error from the log
  * @param label: An arbitrary string used to identify what command you're checking

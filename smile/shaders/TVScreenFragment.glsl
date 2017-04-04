@@ -5,7 +5,11 @@
 
 uniform sampler2D screenTexture;
 uniform int iGlobalTime;
-uniform sampler2D noiseTex;
+
+uniform float _xscale;
+uniform float _yscale;
+uniform float _brightness;
+uniform int _tvon;
 
 // This is passed on from the vertex shader
 //in vec3 LightIntensity;
@@ -63,21 +67,41 @@ uniform MaterialInfo Material = MaterialInfo(
 
 /************************************************************************************/
 
+
+
+//https://thebookofshaders.com/edit.php#11/wood.frag
+//https://thebookofshaders.com/11/
+float random (in vec2 st) {
+    return fract(sin(dot(st.xy,
+                         vec2(12.9898,78.233)))
+                * 43758.5453123);
+}
+float noise(vec2 st) {
+    vec2 newst = vec2(st.x*sin(iGlobalTime)+st.x,cos(iGlobalTime)*iGlobalTime*8.+st.y);
+    vec2 i = floor(newst);
+    vec2 f = fract(newst);
+    vec2 u = f*f*(3.0-2.0*f);
+    return mix( mix( random( i + vec2(0.0,0.0) ),
+                     random( i + vec2(1.0,0.0) ), u.x),
+                mix( random( i + vec2(0.0,1.0) ),
+                     random( i + vec2(1.0,1.0) ), u.x), u.y);
+}
+
+
 // code below taken from https://www.shadertoy.com/view/ldjGzV
 // begin citation
 
-float noise(vec2 p)
-{
-  float s = texture(noiseTex,vec2(2.*sin(iGlobalTime),2.*cos(iGlobalTime))*iGlobalTime*8. + p*1.).x;
-  s *= s;
-  return s;
-}
-
 vec2 screenDistort(vec2 uv)
 {
+
   uv -= vec2(.5,.5);
   uv = uv*1.2*(1./1.2+2.*uv.x*uv.x*uv.y*uv.y);
   uv += vec2(.5,.5);
+
+
+
+
+
   return uv;
 }
 
@@ -86,7 +110,7 @@ float onOff(float a, float b, float c)
   return step(c, sin(iGlobalTime + a*cos(iGlobalTime*b)));
 }
 
-vec3 getVideo(vec2 uv)
+vec3 getVideo(vec2 uv,float xscale, float yscale)
 {
   vec2 look = uv;
   float window = 1./(1.+20.*(look.y-mod(iGlobalTime/4.,1.))*(look.y-mod(iGlobalTime/4.,1.)));
@@ -117,15 +141,30 @@ vec3 getVideo(vec2 uv)
   0.0625, 0.125, 0.0625
   );
 
+  look.x*=xscale;
+  look.y*=yscale;
+
+  look.x-=1.0f*(xscale-1.0f)/2;
+  look.y-=1.0f*(yscale-1.0f)/2;
+
+  //look.x=clamp(uv.x,0.0f,1.0f);
+  //look.y=clamp(uv.y,0.0f,1.0f);
+
+// if clamped
   vec3 col = vec3(0.0);
-              for(int i = 0; i < 9; i++)
-              {
-              sampleTex[i].r = vec3(texture(screenTexture, vec2(look.x + offsets[i].x + 0.005f,look.y+ offsets[i].y))).r;
-               sampleTex[i].g = vec3(texture(screenTexture, vec2(look.x + offsets[i].x,look.y+ offsets[i].y))).g;
-                sampleTex[i].b = vec3(texture(screenTexture, vec2(look.x + offsets[i].x - 0.005f,look.y+ offsets[i].y))).b;
-              col += sampleTex[i] * kernel[i];
-              }
-              video = col;
+  // please forgive me shader overlords
+  if(look.x<1.0f && look.x>0.0f && look.y<1.0f && look.y>0.0f)
+  {
+
+    for(int i = 0; i < 9; i++)
+    {
+    sampleTex[i].r = vec3(texture(screenTexture, vec2(look.x + offsets[i].x + 0.005f,look.y+ offsets[i].y))).r;
+    sampleTex[i].g = vec3(texture(screenTexture, vec2(look.x + offsets[i].x,look.y+ offsets[i].y))).g;
+    sampleTex[i].b = vec3(texture(screenTexture, vec2(look.x + offsets[i].x - 0.005f,look.y+ offsets[i].y))).b;
+    col += sampleTex[i] * kernel[i];
+    }
+  }
+    video = col;
 
 
 
@@ -181,23 +220,18 @@ void main() {
 
   vec2 uv = screenDistort(FragmentTexCoord);
 
-  float vigAmt = 3.+.3*sin(iGlobalTime + 5.*cos(iGlobalTime*5.));
+  float vigAmt = 4.+.3*sin(iGlobalTime + 5.*cos(iGlobalTime*5.));
   float vignette = (1.-vigAmt*(uv.y-.5)*(uv.y-.5))*(1.-vigAmt*(uv.x-.5)*(uv.x-.5));
 
-  vec3 video = getVideo(uv);
+  vec3 video = getVideo(uv,_xscale,_yscale)*_brightness;
 
-
-
-  video+=noise(FragmentTexCoord*1.5f)/10.0f;
+  video+=noise(FragmentTexCoord*100.0f)/10.0f;
   video*=vignette;
-
-
-
 
 
   float power = 0.001f* beckmannSpecular(s,v,n,0.03);
 
-  FragColor = vec4(video,1.0f)+vec4(power,power,power,1.0f);
+  FragColor = vec4(_tvon*video,1.0f)+vec4(power,power,power,1.0f);
 
 
 
