@@ -13,6 +13,7 @@ uniform float _xscale;
 uniform float _yscale;
 uniform float _brightness;
 uniform int _tvon;
+uniform int _camera;
 
 // This is passed on from the vertex shader
 //in vec3 LightIntensity;
@@ -101,6 +102,26 @@ vec2 screenDistort(vec2 uv)
   uv = uv*1.2*(1./1.2+2.*uv.x*uv.x*uv.y*uv.y);
   uv += vec2(.5,.5);
 
+  float fwidth = width;
+  float fheight = height;
+
+  float ratio = fwidth/fheight;
+  float fourbythree = 4.0f/3.0f;
+
+  float diff = ratio-fourbythree;
+  if(_camera==1)
+  {
+  if(diff>0)
+  {
+    uv.y*=ratio/fourbythree;
+    uv.y+=(1.0f-ratio/fourbythree)/2.0f;
+  }
+  else
+  {
+    uv.x*=fourbythree/ratio;
+    uv.x+=(1.0f-fourbythree/ratio)/2.0f;
+  }
+  }
 
 
 

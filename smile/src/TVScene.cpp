@@ -187,20 +187,6 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
     m_width = width; m_height = height;
 
 
-    if((float)m_width/(float)m_height>(4.0f/3.0f))
-    {
-      xscale=(4.0f/3.0f)/((float)m_width/(float)m_height);
-      //printf("%f",xscale);
-    }
-    else
-    {
-      yscale=(3.0f/4.0f)/((float)m_height/(float)m_width);
-      printf("%f",yscale);
-    }
-
-    glUniform1f(glGetUniformLocation(pid, "_xscale"), xscale);
-    glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
-
     glUniform1i(glGetUniformLocation(pid, "height"), m_height);
     glUniform1i(glGetUniformLocation(pid, "width"), m_width);
 
@@ -547,18 +533,24 @@ void TVScene::paintGL() noexcept {
    pid = shader->getProgramID("TVScreen");
    if(channel==2)
    {
+      glUniform1i(glGetUniformLocation(pid, "_camera"), 1);
       glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3+otherFrame);
    }
    else if(channel==0)
    {
+      glUniform1i(glGetUniformLocation(pid, "_camera"), 0);
        glUniform1i(glGetUniformLocation(pid, "screenTexture"), 0);
    }
    else if(channel==1)
    {
+     glUniform1i(glGetUniformLocation(pid, "_camera"), 0);
+
        glUniform1i(glGetUniformLocation(pid, "screenTexture"), 1);
    }
    else if(channel==3)
    {
+     glUniform1i(glGetUniformLocation(pid, "_camera"), 0);
+
      static int spongesteps =0;
      static int spongeframe =1;
      animate(&spongesteps,&spongeframe,2,"images/spongebob/sponge",".jpg",5,5);
@@ -566,6 +558,8 @@ void TVScene::paintGL() noexcept {
    }
    else if(channel==4)
    {
+     glUniform1i(glGetUniformLocation(pid, "_camera"), 0);
+
      static int spongesteps2 =0;
      static int spongeframe2 =1;
      animate(&spongesteps2,&spongeframe2,2,"images/bogart/frame_","_delay-0.1s.jpg",66,4);
@@ -573,6 +567,8 @@ void TVScene::paintGL() noexcept {
    }
    else if(channel==5)
    {
+     glUniform1i(glGetUniformLocation(pid, "_camera"), 0);
+
      static int spongesteps3 =0;
      static int spongeframe3 =1;
      animate(&spongesteps3,&spongeframe3,2,"images/homealone/homealone",".jpg",2414,2);
@@ -580,6 +576,8 @@ void TVScene::paintGL() noexcept {
    }
    else if(channel==6)
    {
+     glUniform1i(glGetUniformLocation(pid, "_camera"), 0);
+
      initTexture(2, m_testscreen, "images/testscreen.jpg");
      glUniform1i(glGetUniformLocation(pid, "screenTexture"), 2);
    }

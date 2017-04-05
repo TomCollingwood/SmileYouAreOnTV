@@ -7,7 +7,3 @@ Also the television will render what the viewer sees, making a visual feedback l
 
 Here are two early work-in-progress screenshot, showing the feedback loop, VCR shader (used [https://www.shadertoy.com/view/ldjGzV](https://www.shadertoy.com/view/ldjGzV) )  and some anistropic elements.
 
-TODO:
-* Add resize to screen (either fill or black bars)
-* Add channel select with keys
-* Add on and off effect with screen turning off.
