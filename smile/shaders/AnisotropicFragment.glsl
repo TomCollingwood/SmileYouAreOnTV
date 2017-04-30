@@ -108,6 +108,39 @@ float snoise(vec3 p) {
 
 // end
 
+/** From http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
+  */
+mat4 rotationMatrix(vec3 axis, float angle)
+{
+    //axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+/**
+  * Rotate a vector vec by using the rotation that transforms from src to tgt.
+  */
+vec3 rotateVector(vec3 src, vec3 tgt, vec3 vec) {
+    float angle = acos(dot(src,tgt));
+
+    // Check for the case when src and tgt are the same vector, in which case
+    // the cross product will be ill defined.
+    if (angle == 0.0) {
+        return vec;
+    }
+    vec3 axis = normalize(cross(src,tgt));
+    mat4 R = rotationMatrix(axis,angle);
+
+    // Rotate the vec by this rotation matrix
+    vec4 _norm = R*vec4(vec,1.0);
+    return _norm.xyz / _norm.w;
+}
+
 
 /************************************************************************************/
 vec3 LightIntensity;
@@ -127,6 +160,10 @@ void main() {
     vec2 ourTang = FragmentTexCoord*2 -1;
     vec4 tangeant = vec4(ourTang.x,ourTang.y,0.0f,1.0f);
     tangeant = vec4(normalize(tangeant.rgb),1.0f);
+
+    // The source is just up in the Z-direction
+    vec3 src = vec3(0.0, 0.0, 1.0);
+    vec3 perterbedtange = rotateVector(src, tangeant.xyz, n);
 
     float stretch = 50.0f;
     vec3 stretchedWorldSpace = vec3(FragmentWorldSpace.x*(1+tangeant.y*stretch),FragmentWorldSpace.y*(1+tangeant.x*stretch),FragmentWorldSpace.z*(1+stretch));

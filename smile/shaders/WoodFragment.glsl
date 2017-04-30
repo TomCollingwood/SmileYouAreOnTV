@@ -108,8 +108,10 @@ float snoise(vec3 p) {
     return dot(d, vec4(52.0));
 }
 
-// end
 
+
+//https://thebookofshaders.com/edit.php#11/wood.frag
+//https://thebookofshaders.com/11/
 float noise(vec2 st) {
     vec2 i = floor(st);
     vec2 f = fract(st);
@@ -154,6 +156,46 @@ float beckmannSpecular(
   float roughness) {
   return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
 }
+//
+
+
+/** From http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
+  */
+mat4 rotationMatrix(vec3 axis, float angle)
+{
+    //axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+/**
+  * Rotate a vector vec by using the rotation that transforms from src to tgt.
+  */
+vec3 rotateVector(vec3 src, vec3 tgt, vec3 vec) {
+    float angle = acos(dot(src,tgt));
+
+    // Check for the case when src and tgt are the same vector, in which case
+    // the cross product will be ill defined.
+    if (angle == 0.0) {
+        return vec;
+    }
+    vec3 axis = normalize(cross(src,tgt));
+    mat4 R = rotationMatrix(axis,angle);
+
+    // Rotate the vec by this rotation matrix
+    vec4 _norm = R*vec4(vec,1.0);
+    return _norm.xyz / _norm.w;
+}
+
+
+
+const vec2 size = vec2(5.0,0.0);
+const vec3 off = vec3(-0.0005,0,0.0005);
 
 vec3 LightIntensity;
 
@@ -171,11 +213,45 @@ void main() {
       // Draw lines
       pattern = lines(pos,.5) + snoise(vec3(st*75,0.0f));
 
+
+      // modifed from http://stackoverflow.com/questions/5281261/generating-a-normal-map-from-a-height-map
+      // CALCULATE NORMAL MAP
+      vec2 tmpst = st;
+      pos = tmpst.yx*vec2(3.,10.);
+      float s11 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+
+      tmpst = st+off.xy;
+      pos = tmpst.yx*vec2(3.,10.);
+      float s01 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+
+      tmpst = st+off.zy;
+      pos = tmpst.yx*vec2(3.,10.);
+      float s21 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+
+      tmpst = st+off.yx;
+      pos = tmpst.yx*vec2(3.,10.);
+      float s10 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+
+      tmpst = st+off.yz;
+      pos = tmpst.yx*vec2(3.,10.);
+      float s12 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+
+      vec3 va = normalize(vec3(size.xy,s21-s01));
+      vec3 vb = normalize(vec3(size.yx,s12-s10));
+      vec4 bump = vec4( cross(va,vb), 1.0f );
+
+      // Calculate the view vector
+      vec3 n = normalize(vec3(FragmentNormal));
+
+      // The source is just up in the Z-direction
+      vec3 src = vec3(0.0, 0.0, 1.0);
+      // Perturb the normal according to the target
+      vec3 np = rotateVector(src, bump.xyz, n);
+
+
+      // WOOD COLOUR
       vec3 woodback = vec3(55.0f/255.0f,34.0f/255.0f,23.0f/255.0f);
       vec3 woodfront = vec3(84/255,59/255,16/255);
-
-      // Transform your input normal
-      vec3 n = normalize( FragmentNormal );
 
       // Calculate the light vector
       vec3 s = normalize( vec3(Light.Position) - FragmentPosition.xyz );
@@ -183,9 +259,10 @@ void main() {
       // Calculate the direction of camera
       vec3 v = normalize(vec3(-FragmentPosition.xyz));
 
-      float power = beckmannSpecular(s,v,n,0.4);
+      // Reflect the light about the surface normal
+      vec3 r = reflect( -s, np );
 
-      FragColor = 0.065f*vec4(power,power,power,0.9)+vec4(woodback+0.03*vec3(pattern),1.0);
+      float power = beckmannSpecular(s,v,np,1.0);
 
-
+      FragColor =  0.2*pow( max( dot(r,v), 0.0 ), power )+vec4(woodback+0.03*vec3(pattern),1.0); //vec4(power,power,power,1.0);//+ vec4(0.5f,0.5f,0.5f,1.0f) *
 }

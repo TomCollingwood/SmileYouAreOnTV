@@ -26,7 +26,7 @@ struct LightInfo {
 
 // We'll have a single light in the scene with some default values
 uniform LightInfo Light = LightInfo(
-            vec4(0.0, 0.0, 10.0, 1.0),   // position
+            vec4(0.0, 5.0, 10.0, 1.0),   // position
             vec3(0.05, 0.05, 0.05),        // La
             vec3(0.2, 0.2, 0.2),        // Ld
             vec3(1.0, 1.0, 1.0)         // Ls
@@ -129,26 +129,54 @@ float snoise(vec3 p) {
     return dot(d, vec4(52.0));
 }
 
+/** From http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
+  */
+mat4 rotationMatrix(vec3 axis, float angle)
+{
+    //axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+/**
+  * Rotate a vector vec by using the rotation that transforms from src to tgt.
+  */
+vec3 rotateVector(vec3 src, vec3 tgt, vec3 vec) {
+    float angle = acos(dot(src,tgt));
+
+    // Check for the case when src and tgt are the same vector, in which case
+    // the cross product will be ill defined.
+    if (angle == 0.0) {
+        return vec;
+    }
+    vec3 axis = normalize(cross(src,tgt));
+    mat4 R = rotationMatrix(axis,angle);
+
+    // Rotate the vec by this rotation matrix
+    vec4 _norm = R*vec4(vec,1.0);
+    return _norm.xyz / _norm.w;
+}
+
+
 // end
+const vec2 size = vec2(-10.0,0.0);
+const vec3 off = vec3(-0.005,0,0.005);
 
 
 void main() {
-  // Transform your input normal
-  vec3 n = normalize( FragmentNormal );
 
-  // Calculate the light vector
-  vec3 s = normalize( vec3(Light.Position) - FragmentPosition.xyz );
-
-  // Calculate the direction of camera
-  vec3 v = normalize(vec3(-FragmentPosition.xyz));
 
   // Reflect the light about the surface normal
-  vec3 r = reflect( -s, n );
+  //
 
   // Compute the light from the ambient, diffuse and specular components
   // PHONG
 
-  float power = beckmannSpecular(s,v,n,0.4);
 //  LightIntensity = (
 //          Light.La * Material.Ka +
 //          Light.Ld * Material.Kd * max( dot(s, FragmentNormal), 0.0 ) +
@@ -156,7 +184,46 @@ void main() {
 
 
 
-    //FragColor = vec4(1.0f,0.0f,0.0f,1.0);
-  FragColor =0.07f*vec4(power,power,power,1.0)*(1+0.2*snoise(vec3(FragmentTexCoord*600,0.0f)));//+ noise(FragmentTexCoord) ;
+    int scale = 1000;
+  vec2 tmpst = FragmentTexCoord;
+  float s11 = snoise(vec3(tmpst*scale,0.0f));
 
+  tmpst = FragmentTexCoord+off.xy;
+  float s01 = snoise(vec3(tmpst*scale,0.0f));
+
+  tmpst = FragmentTexCoord+off.zy;
+  float s21 = snoise(vec3(tmpst*scale,0.0f));
+
+  tmpst = FragmentTexCoord+off.yx;
+  float s10 = snoise(vec3(tmpst*scale,0.0f));
+
+  tmpst = FragmentTexCoord+off.yz;
+  float s12 =snoise(vec3(tmpst*scale,0.0f));
+
+  vec3 va = normalize(vec3(size.xy,s21-s01));
+  vec3 vb = normalize(vec3(size.yx,s12-s10));
+  vec4 bump = vec4( cross(va,vb), 1.0f );
+
+
+  // Transform your input normal
+  vec3 n = normalize( vec3(FragmentNormal) );
+  // The source is just up in the Z-direction
+  vec3 src = vec3(0.0, 0.0, 1.0);
+  // Perturb the normal according to the target
+  vec3 np = rotateVector(src, bump.xyz, n);
+
+
+
+  // Calculate the light vector
+  vec3 s = normalize( vec3(Light.Position) - FragmentPosition.xyz );
+
+  // Calculate the direction of camera
+  vec3 v = normalize(vec3(-FragmentPosition.xyz));
+
+  vec3 r = reflect( -s, np );
+
+  float power = beckmannSpecular(s,v,np,0.9f);
+
+
+  FragColor =  0.3f*vec4(pow( max( dot(r,v), 0.0 ), power ))+vec4(0.05f*snoise(vec3(FragmentTexCoord*scale,0.0f)));
 }
