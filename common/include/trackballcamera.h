@@ -40,6 +40,9 @@ public:
 
     /// Controller sensitivity
     void setSensitivity(const double& sensitivity=0.01) noexcept {m_sensitivity = sensitivity;}
+
+    void handleKeyAction(int key, int action);
+
 private:
     /// Rotate based on the current mouse position and the mouse click position
     void mouseRotate(double /*xpos*/, double /*ypos*/);
@@ -61,6 +64,10 @@ private:
 
     /// Keep track of whether the matrices need to be rebuilt
     bool m_dirty;
+
+    bool m_rolling = false;
+    bool m_rollright = false;
+    int m_rollcount = 0;
 };
 
 #endif // TRACKBALLCAMERA_H

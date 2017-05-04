@@ -116,6 +116,16 @@ void TrackballCamera::update() {
         // Call base class to update perspective
         Camera::update();
 
+        if(m_rolling)
+        {
+          m_roll+=m_rollright*0.005-(!m_rollright)*0.005;
+          m_rollcount++;
+          if(m_rollcount>20)
+          {
+            m_rolling=false;
+          }
+        }
+
         // Now use lookat function to set the view matrix (assume y is up)
         glm::dmat3 R_yaw = glm::mat3_cast(glm::angleAxis(m_yaw, glm::dvec3(0.0, 1.0, 0.0)));
         glm::dmat3 R_pitch = glm::mat3_cast(glm::angleAxis(m_pitch, glm::dvec3(1.0, 0.0, 0.0)));
@@ -124,22 +134,33 @@ void TrackballCamera::update() {
         m_V = R_roll*glm::lookAt(glm::vec3(eye), glm::vec3(m_target), glm::vec3(0.0f,1.0f,0.0f));
 
         m_dirty = false;
+        if(m_rolling)
+        {
+          m_dirty=true;
+        }
     }
 }
 
-void TrackballCamera::handleKey(int key, bool isPress)
+void TrackballCamera::handleKey(int key, bool action)
 {
-  if (isPress) {
+  if (action) {
       switch(key) {
       case GLFW_KEY_Q: //exit the application
-          m_roll+=0.05f;
+          //m_roll+=0.05f;
           m_dirty = true;
+          m_rolling=true;
+          m_rollcount=0;
+          m_rollright=true;
           break;
       case GLFW_KEY_E: //exit the application
-          m_roll-=0.05f;
+          //m_roll-=0.05f;
           m_dirty = true;
+          m_rolling=true;
+          m_rollcount=0;
+          m_rollright=false;
         break;
       }
-
   }
+
+
 }

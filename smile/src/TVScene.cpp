@@ -73,8 +73,6 @@ void TVScene::initGL() noexcept {
                        "shaders/WoodFragment.glsl");
 
 
-
-
     (*shader)["Anisotropic"]->use();
 
     m_anistropicMesh.reset(new ngl::Obj("models/anistest.obj"));
@@ -148,8 +146,6 @@ void TVScene::initGL() noexcept {
     );
 
 
-
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
@@ -159,10 +155,6 @@ void TVScene::initGL() noexcept {
     glUniform1i(glGetUniformLocation(pid, "height"), m_height);
     glUniform1i(glGetUniformLocation(pid, "width"), m_width);
 
-
-
-
-
     (*shader)["TVScreen"]->use();
     pid = shader->getProgramID("TVScreen");
     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3);
@@ -170,7 +162,6 @@ void TVScene::initGL() noexcept {
     glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
     glUniform1f(glGetUniformLocation(pid, "_brightness"), brightness);
     glUniform1i(glGetUniformLocation(pid, "_tvon"), tvon);
-
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -186,12 +177,8 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
 
     m_width = width; m_height = height;
 
-
     glUniform1i(glGetUniformLocation(pid, "height"), m_height);
     glUniform1i(glGetUniformLocation(pid, "width"), m_width);
-
-
-
 
     m_ratio = m_width / (float) m_height;
     glDeleteFramebuffers(1, &m_framebuffer[0]);
@@ -330,6 +317,7 @@ void TVScene::paintGL() noexcept {
     (*shader)["Matte"]->use();
     // MATTTE
     pid = shader->getProgramID("Matte");
+    glUniform1i(glGetUniformLocation(pid, "iGlobalTime"), step);
     glUniformMatrix4fv(glGetUniformLocation(pid, "MVP"), //location of uniform
                        1, // how many matrices to transfer
                        false, // whether to transpose matrix
@@ -415,8 +403,6 @@ void TVScene::paintGL() noexcept {
       {
         tvsteps=0;
         tvstate=0;
-
-
       }
     }
 
@@ -530,6 +516,7 @@ void TVScene::paintGL() noexcept {
 
    (*shader)["TVScreen"]->use();
 
+   //-------------------------------------------TV CHANNELS------------------------------
    pid = shader->getProgramID("TVScreen");
    if(channel==2)
    {
@@ -583,9 +570,7 @@ void TVScene::paintGL() noexcept {
    }
    m_screenMesh->draw();
 
-  //m_screenQuad->draw();
 #endif
-
 
 }
 

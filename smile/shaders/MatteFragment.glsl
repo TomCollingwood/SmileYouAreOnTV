@@ -9,6 +9,7 @@
 in vec3 FragmentPosition;
 in vec3 FragmentNormal;
 in vec2 FragmentTexCoord;
+uniform int iGlobalTime;
 in mat4 _MV;
 
 // This is no longer a built-in variable
@@ -226,4 +227,12 @@ void main() {
 
 
   FragColor =  0.3f*vec4(pow( max( dot(r,v), 0.0 ), power ))+vec4(0.05f*snoise(vec3(FragmentTexCoord*scale,0.0f)));
+
+//  vec3 video = vec3(0.5f);
+//    float speedcol = 2.8f;
+//    float amount = 0.5f;
+//    video[0]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol)/2.0f));
+//    video[1]+=mix(-amount,amount,(1.0f+cos(iGlobalTime/speedcol)/2.0f));
+//    video[2]+=mix(-amount,amount,(1.0f+sin((iGlobalTime/speedcol) +180)/2.0f));
+//    FragColor = vec4(video,1.0f);
 }

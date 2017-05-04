@@ -264,5 +264,10 @@ void main() {
 
       float power = beckmannSpecular(s,v,np,1.0);
 
-      FragColor =  0.2*pow( max( dot(r,v), 0.0 ), power )+vec4(woodback+0.03*vec3(pattern),1.0); //vec4(power,power,power,1.0);//+ vec4(0.5f,0.5f,0.5f,1.0f) *
+      // energy conservation
+      float Ks = 0.2f;
+      float kD = 1.0f-Ks;
+
+
+      FragColor =  Ks*pow( max( dot(r,v), 0.0 ), power )+kD*vec4(woodback+0.03*vec3(pattern),1.0); //vec4(power,power,power,1.0);//+ vec4(0.5f,0.5f,0.5f,1.0f) *
 }

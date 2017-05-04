@@ -255,7 +255,6 @@ float beckmannSpecular(
 ///end
 
 
-
 void main() {
   //-----------------------------------------------------------------------------
   // Transform your input normal
@@ -278,15 +277,19 @@ void main() {
 
   vec3 video = getVideo(uv,_xscale,_yscale)*_brightness;
 
-  video+=noise(FragmentTexCoord*100.0f)/10.0f;
-  video*=vignette;
+  //video+=noise(FragmentTexCoord*100.0f)/10.0f;
+  //video*=vignette;
+
+//  float speedcol = 3.0f;
+//  float amount = 0.1f;
+//  video[0]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol)/2.0f));
+//  video[1]+=mix(-amount,amount,(1.0f+cos(iGlobalTime/speedcol)/2.0f));
+//  video[2]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol + 180))/2.0f);
 
 
   float power = 0.001f* beckmannSpecular(s,v,n,0.03);
 
   FragColor = vec4(_tvon*video,1.0f)+vec4(power,power,power,1.0f);
-
-
 
 
 
