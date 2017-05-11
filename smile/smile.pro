@@ -21,7 +21,13 @@ OTHER_FILES += \
            ../readme.md
 
 DISTFILES += \
-           shaders/*
+           shaders/* \
+    shaders/GBufferVertex.glsl \
+    shaders/GBufferFragment.glsl \
+    shaders/SSAOVertex.glsl \
+    shaders/SSAOFragment.glsl \
+    shaders/SSAOBlurFragment.glsl \
+    shaders/SSAOBlurVertex.glsl
            ../README.md
 
 OBJECTS_DIR = obj/

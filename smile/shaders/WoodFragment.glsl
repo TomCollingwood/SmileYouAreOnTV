@@ -26,7 +26,7 @@ struct LightInfo {
 
 // We'll have a single light in the scene with some default values
 uniform LightInfo Light = LightInfo(
-            vec4(0.0, 0.0, 10.0, 1.0),   // position
+            vec4(0.0, 10.0, 3.0, 1.0),   // position
             vec3(0.1, 0.1, 0.1),        // La
             vec3(0.5, 0.5, 0.5),        // Ld
             vec3(1.0, 1.0, 1.0)         // Ls
@@ -216,25 +216,27 @@ void main() {
 
       // modifed from http://stackoverflow.com/questions/5281261/generating-a-normal-map-from-a-height-map
       // CALCULATE NORMAL MAP
+      float dust = 1000.f;
+
       vec2 tmpst = st;
       pos = tmpst.yx*vec2(3.,10.);
-      float s11 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+      float s11 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + min(0.0f, snoise(vec3(tmpst*dust,0.0f)));
 
       tmpst = st+off.xy;
       pos = tmpst.yx*vec2(3.,10.);
-      float s01 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+      float s01 = 1-lines(rotate2d( noise(pos) ) * pos,.5) +  min(0.0f, snoise(vec3(tmpst*dust,0.0f)));
 
       tmpst = st+off.zy;
       pos = tmpst.yx*vec2(3.,10.);
-      float s21 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+      float s21 = 1-lines(rotate2d( noise(pos) ) * pos,.5) +  min(0.0f, snoise(vec3(tmpst*dust,0.0f)));
 
       tmpst = st+off.yx;
       pos = tmpst.yx*vec2(3.,10.);
-      float s10 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+      float s10 = 1-lines(rotate2d( noise(pos) ) * pos,.5) +  min(0.0f, snoise(vec3(tmpst*dust,0.0f)));
 
       tmpst = st+off.yz;
       pos = tmpst.yx*vec2(3.,10.);
-      float s12 = 1-lines(rotate2d( noise(pos) ) * pos,.5) + snoise(vec3(tmpst*75,0.0f));
+      float s12 = 1-lines(rotate2d( noise(pos) ) * pos,.5) +  min(0.0f, snoise(vec3(tmpst*dust,0.0f)));
 
       vec3 va = normalize(vec3(size.xy,s21-s01));
       vec3 vb = normalize(vec3(size.yx,s12-s10));

@@ -4,6 +4,7 @@
 
 
 uniform sampler2D screenTexture;
+uniform sampler2D noiseTexture;
 uniform int iGlobalTime;
 
 uniform int width;
@@ -285,6 +286,7 @@ void main() {
 //  video[0]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol)/2.0f));
 //  video[1]+=mix(-amount,amount,(1.0f+cos(iGlobalTime/speedcol)/2.0f));
 //  video[2]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol + 180))/2.0f);
+
 
 
   float power = 0.001f* beckmannSpecular(s,v,n,0.03);

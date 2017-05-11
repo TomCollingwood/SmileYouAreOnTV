@@ -9,7 +9,6 @@
 in vec3 FragmentPosition;
 in vec3 FragmentNormal;
 in vec2 FragmentTexCoord;
-uniform int iGlobalTime;
 in mat4 _MV;
 
 // This is no longer a built-in variable
