@@ -12,7 +12,7 @@ in vec2 FragmentTexCoord;
 
 
 
-//begin code from:
+//begin code citation from:
 //https://github.com/mattdesl/glsl-fxaa/blob/master/fxaa.glsl
 
 // This is no longer a built-in variable
@@ -78,7 +78,7 @@ vec4 fxaa(sampler2D tex, vec2 fragCoord, vec2 resolution,
         color = vec4(rgbB, texColor.a);
     return color;
 }
-// end code
+// end code citation
 
 
 
@@ -92,8 +92,8 @@ void main() {
                    (FragmentTexCoord.xy*resolution+ vec2(1.0, -1.0))* inverseVP,
                    (FragmentTexCoord.xy*resolution+ vec2(-1.0, 1.0))* inverseVP,
                    (FragmentTexCoord.xy*resolution+ vec2(1.0, 1.0))* inverseVP,
-                   vec2(FragmentTexCoord.xy*resolution* inverseVP));
+                   vec2(FragmentTexCoord.xy*resolution* inverseVP)) * texture(texSSAO,FragmentTexCoord);
 
-  //FragColor = texture(texFramebuffer,FragmentTexCoord);
+ // FragColor = texture(texSSAO,FragmentTexCoord);
 
 }

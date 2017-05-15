@@ -213,9 +213,9 @@ void main() {
       // Draw lines
       pattern = lines(pos,.5) + snoise(vec3(st*75,0.0f));
 
-
-      // modifed from http://stackoverflow.com/questions/5281261/generating-a-normal-map-from-a-height-map
-      // CALCULATE NORMAL MAP
+      // GENERATE NORMAL MAP
+      // begin citation
+      // code edited / inspired from http://stackoverflow.com/a/5284527
       float dust = 1000.f;
 
       vec2 tmpst = st;
@@ -241,6 +241,8 @@ void main() {
       vec3 va = normalize(vec3(size.xy,s21-s01));
       vec3 vb = normalize(vec3(size.yx,s12-s10));
       vec4 bump = vec4( cross(va,vb), 1.0f );
+
+      // end citation
 
       // Calculate the view vector
       vec3 n = normalize(vec3(FragmentNormal));
@@ -270,6 +272,6 @@ void main() {
       float Ks = 0.2f;
       float kD = 1.0f-Ks;
 
-
-      FragColor =  Ks*pow( max( dot(r,v), 0.0 ), power )+kD*vec4(woodback+0.03*vec3(pattern),1.0); //vec4(power,power,power,1.0);//+ vec4(0.5f,0.5f,0.5f,1.0f) *
+      FragColor =   Ks*pow( max( dot(r,v), 0.0 ), power ) +
+                    kD*vec4(woodback+0.03*vec3(pattern),1.0); //vec4(power,power,power,1.0);//+ vec4(0.5f,0.5f,0.5f,1.0f) *
 }

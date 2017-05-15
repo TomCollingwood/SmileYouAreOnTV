@@ -15,6 +15,8 @@ uniform float _yscale;
 uniform float _brightness;
 uniform int _tvon;
 uniform int _camera;
+uniform bool _vignetteon;
+uniform bool _noiseon;
 
 // This is passed on from the vertex shader
 //in vec3 LightIntensity;
@@ -93,7 +95,7 @@ float noise(vec2 st) {
 }
 
 
-// code below taken from https://www.shadertoy.com/view/ldjGzV
+// code below edited from https://www.shadertoy.com/view/ldjGzV
 // begin citation
 
 vec2 screenDistort(vec2 uv)
@@ -114,7 +116,7 @@ vec2 screenDistort(vec2 uv)
   {
   if(diff>0)
   {
-    uv.y*=ratio/fourbythree;
+    uv.y*=fourbythree/ratio;
     uv.y+=(1.0f-ratio/fourbythree)/2.0f;
   }
   else
@@ -147,8 +149,6 @@ vec3 getVideo(vec2 uv,float xscale, float yscale)
 
 
   // below adapted from https://learnopengl.com/#!Advanced-OpenGL/Framebuffers Accesed 17/02
-
-
   float fwidth = width;
   float fheight = height;
   float offsetx = 1.0f/fwidth;
@@ -171,29 +171,6 @@ vec3 getVideo(vec2 uv,float xscale, float yscale)
     0.125,  0.25,  0.125,
     0.0625, 0.125, 0.0625
     );
-//  offsets = vec2[](
-//  vec2(-3*ox, 3*oy),vec2(-2*ox, 3*oy),vec2(-ox, 3*oy),vec2(0, 3*oy),vec2(ox, 3*oy),vec2(2*ox, 3*oy),vec2(3*ox, 3*oy),
-//  vec2(-3*ox, 2*oy),vec2(-2*ox, 2*oy),vec2(-ox, 2*oy),vec2(0, 2*oy),vec2(ox, 2*oy),vec2(2*ox, 2*oy),vec2(3*ox, 2*oy),
-//  vec2(-3*ox, oy),vec2(-2*ox, oy),vec2(-ox, oy),vec2(0, oy),vec2(ox, oy),vec2(2*ox, oy),vec2(3*ox, oy),
-//  vec2(-3*ox, 0),vec2(-2*ox, 0),vec2(-ox, 0),vec2(0, 0),vec2(ox, 0),vec2(2*ox, 0),vec2(3*ox, 0),
-//  vec2(-3*ox, -oy),vec2(-2*ox, -oy),vec2(-ox, -oy),vec2(0, oy),vec2(ox, -oy),vec2(2*ox, -oy),vec2(3*ox, -oy),
-//  vec2(-3*ox, -2*oy),vec2(-2*ox, -2*oy),vec2(-ox, -2*oy),vec2(0, -2*oy),vec2(ox, -2*oy),vec2(2*ox, -2*oy),vec2(3*ox, -2*oy),
-//  vec2(-3*ox, -3*oy),vec2(-2*ox, -3*oy),vec2(-ox, -3*oy),vec2(0, -3*oy),vec2(ox, -3*oy),vec2(2*ox, -3*oy),vec2(3*ox, -3*oy),
-//      );
-//  kernel = float[](
-//  0.0625, 0.125, 0.0625,
-//  0.125,  0.25,  0.125,
-//  0.0625, 0.125, 0.0625
-//  );
-//kernel = float[](
-//  0.00000067,	0.00002292,	0.00019117,	0.00038771,	0.00019117,	0.00002292,	0.00000067,
-//  0.00002292,	0.00078634,	0.00655965,	0.01330373,	0.00655965,	0.00078633,	0.00002292,
-//  0.00019117,	0.00655965,	0.05472157,	0.11098164,	0.05472157,	0.00655965,	0.00019117,
-//  0.00038771,	0.01330373,	0.11098164,	0.22508352,	0.11098164,	0.01330373,	0.00038771,
-//  0.00019117,	0.00655965,	0.05472157,	0.11098164,	0.05472157,	0.00655965,	0.00019117,
-//  0.00002292,	0.00078633,	0.00655965,	0.01330373,	0.00655965,	0.00078633,	0.00002292,
-//  0.00000067,	0.00002292,	0.00019117,	0.00038771,	0.00019117,	0.00002292,	0.00000067
-//            );
 
   look.x*=xscale;
   look.y*=yscale;
@@ -278,15 +255,15 @@ void main() {
 
   vec3 video = getVideo(uv,_xscale,_yscale)*_brightness;
 
-  //video+=noise(FragmentTexCoord*100.0f)/10.0f;
-  //video*=vignette;
+  if(_noiseon) video+=noise(FragmentTexCoord*100.0f)/10.0f;
+
+  if(_vignetteon) video*=vignette;
 
 //  float speedcol = 3.0f;
 //  float amount = 0.1f;
 //  video[0]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol)/2.0f));
 //  video[1]+=mix(-amount,amount,(1.0f+cos(iGlobalTime/speedcol)/2.0f));
 //  video[2]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol + 180))/2.0f);
-
 
 
   float power = 0.001f* beckmannSpecular(s,v,n,0.03);

@@ -170,21 +170,9 @@ const vec3 off = vec3(-0.005,0,0.005);
 
 void main() {
 
-
-  // Reflect the light about the surface normal
-  //
-
-  // Compute the light from the ambient, diffuse and specular components
-  // PHONG
-
-//  LightIntensity = (
-//          Light.La * Material.Ka +
-//          Light.Ld * Material.Kd * max( dot(s, FragmentNormal), 0.0 ) +
-//          Light.Ls * Material.Ks * pow( max( dot(r,v), 0.0 ), KsPow ));
-
-
-
-    int scale = 1000;
+  // begin citation
+  // code edited / inspired from http://stackoverflow.com/a/5284527
+  int scale = 1000;
   vec2 tmpst = FragmentTexCoord;
   float s11 = snoise(vec3(tmpst*scale,0.0f));
 
@@ -204,6 +192,7 @@ void main() {
   vec3 vb = normalize(vec3(size.yx,s12-s10));
   vec4 bump = vec4( cross(va,vb), 1.0f );
 
+  // end citation
 
   // Transform your input normal
   vec3 n = normalize( vec3(FragmentNormal) );
@@ -211,8 +200,6 @@ void main() {
   vec3 src = vec3(0.0, 0.0, 1.0);
   // Perturb the normal according to the target
   vec3 np = rotateVector(src, bump.xyz, n);
-
-
 
   // Calculate the light vector
   vec3 s = normalize( vec3(Light.Position) - FragmentPosition.xyz );
@@ -224,14 +211,10 @@ void main() {
 
   float power = beckmannSpecular(s,v,np,0.9f);
 
+  // Energy conservation
+  float Ks = 0.3f;
+  float Kd = 1.0f-Ks;
 
-  FragColor =  0.3f*vec4(pow( max( dot(r,v), 0.0 ), power ))+vec4(0.05f*snoise(vec3(FragmentTexCoord*scale,0.0f)));
+  FragColor =  Ks*vec4(pow( max( dot(r,v), 0.0 ), power ))+Kd*vec4(0.05f*snoise(vec3(FragmentTexCoord*scale,0.0f)));
 
-//  vec3 video = vec3(0.5f);
-//    float speedcol = 2.8f;
-//    float amount = 0.5f;
-//    video[0]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol)/2.0f));
-//    video[1]+=mix(-amount,amount,(1.0f+cos(iGlobalTime/speedcol)/2.0f));
-//    video[2]+=mix(-amount,amount,(1.0f+sin((iGlobalTime/speedcol) +180)/2.0f));
-//    FragColor = vec4(video,1.0f);
 }

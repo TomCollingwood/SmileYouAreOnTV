@@ -38,6 +38,7 @@ void TVScene::passMatrices(GLuint shaderID)
 
 void TVScene::handleKey(int _key)
 {
+  ngl::ShaderLib *shader=ngl::ShaderLib::instance();
     switch(_key) {
     case GLFW_KEY_A: //exit the application
         channel--;
@@ -57,6 +58,37 @@ void TVScene::handleKey(int _key)
           tvsteps=70;
         }
         break;
+
+    case GLFW_KEY_1:
+      m_noiseon = true;
+      m_vignette = true;
+      m_showtangeants=false;
+      m_showssao=false;
+      break;
+    case GLFW_KEY_2:
+      m_noiseon = true;
+      m_vignette = false;
+      m_showtangeants=false;
+      m_showssao=false;
+      break;
+    case GLFW_KEY_3:
+      m_noiseon = false;
+      m_vignette = false;
+      m_showtangeants=false;
+      m_showssao=false;
+      break;
+    case GLFW_KEY_4:
+      if(m_showtangeants) m_showtangeants =false;
+      else m_showtangeants=true;
+      m_showssao=false;
+      break;
+    case GLFW_KEY_5:
+      m_noiseon = true;
+      m_vignette = true;
+      m_showtangeants=false;
+      if(m_showssao) m_showssao=false;
+      else m_showssao=true;
+      break;
     }
 }
 
@@ -336,6 +368,9 @@ void TVScene::initGL() noexcept {
     glUniform1i(glGetUniformLocation(pid, "height"), m_height);
     glUniform1i(glGetUniformLocation(pid, "width"), m_width);
 
+    (*shader)["Anisotropic"]->use();
+    pid = shader->getProgramID("Anisotropic");
+    glUniform1i(glGetUniformLocation(pid, "_showtangeants"), m_showtangeants);
 
     (*shader)["TVScreen"]->use();
     pid = shader->getProgramID("TVScreen");
@@ -344,6 +379,8 @@ void TVScene::initGL() noexcept {
     glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
     glUniform1f(glGetUniformLocation(pid, "_brightness"), brightness);
     glUniform1i(glGetUniformLocation(pid, "_tvon"), tvon);
+    glUniform1i(glGetUniformLocation(pid, "_vignetteon"), 1);
+    glUniform1i(glGetUniformLocation(pid, "_noiseon"), 1);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -568,6 +605,8 @@ void TVScene::paintGL() noexcept {
 
     (*shader)["Anisotropic"]->use();
     passMatrices(shader->getProgramID("Anisotropic"));
+    glUniform1i(glGetUniformLocation(shader->getProgramID("Anisotropic"), "_showtangeants"), m_showtangeants);
+
 
     (*shader)["Matte"]->use();
     passMatrices(shader->getProgramID("Matte"));
@@ -590,6 +629,9 @@ void TVScene::paintGL() noexcept {
     (*shader)["TVScreen"]->use();
     GLuint pid = shader->getProgramID("TVScreen");
     glUniform1i(glGetUniformLocation(pid, "iGlobalTime"), step);
+    glUniform1i(glGetUniformLocation(pid, "_vignetteon"), m_vignette);
+    glUniform1i(glGetUniformLocation(pid, "_noiseon"), m_noiseon);
+
     passMatrices(shader->getProgramID("TVScreen"));
 
     if(tvstate==1) // turning on
@@ -658,8 +700,9 @@ void TVScene::paintGL() noexcept {
       frame=true;
     }
 
-
-
+// JUST TAKE OUT THIS TO GET SSAO
+//if(m_showssao)
+//{
   // gBuffer (depth + normals)
   glBindFramebuffer(GL_FRAMEBUFFER,m_gBuffer);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -685,7 +728,7 @@ void TVScene::paintGL() noexcept {
   m_screenQuad->draw();
 
   // SSAO Blur
-  glBindFramebuffer(GL_FRAMEBUFFER,0);
+  glBindFramebuffer(GL_FRAMEBUFFER,m_SSAOBlurframebuffer);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
@@ -696,7 +739,8 @@ void TVScene::paintGL() noexcept {
   (*shader)["SSAOBlur"]->use();
   //glUniform1i(glGetUniformLocation(shader->getProgramID("SSAOBlur"), "texFramebuffer"), 8);
   m_screenQuad->draw();
-/*
+
+
 
 
   glBindFramebuffer(GL_FRAMEBUFFER, m_FXAAframebuffer[whichFrame]);
@@ -732,7 +776,8 @@ void TVScene::paintGL() noexcept {
 
 
 
-  // */
+
+  //
 
 
 

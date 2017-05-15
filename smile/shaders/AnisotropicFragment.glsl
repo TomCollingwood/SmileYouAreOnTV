@@ -1,6 +1,8 @@
-/// @author Richard Southern
+/// @author Richard Southern, edited by Thomas Collingwood
 
 #version 410 core
+
+#define M_PI 3.1415926535897932384626433832795
 
 // This is passed on from the vertex shader
 //in vec3 LightIntensity;
@@ -9,6 +11,8 @@ in vec3 FragmentNormal;
 in vec2 FragmentTexCoord;
 in vec3 FragmentWorldSpace;
 in mat4 _MV;
+
+uniform bool _showtangeants;
 
 // This is no longer a built-in variable
 layout (location=0) out vec4 FragColor;
@@ -47,7 +51,7 @@ uniform MaterialInfo Material = MaterialInfo(
             3.0                    // Shininess
             );
 
-
+// begin citation
 //https://thebookofshaders.com/edit.php#11/wood.frag
 //https://thebookofshaders.com/11/
 float random (in vec2 st) {
@@ -106,10 +110,11 @@ float snoise(vec3 p) {
     return dot(d, vec4(52.0));
 }
 
-// end
+// end citation
 
-/** From http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
-  */
+//  begin citation
+//  From http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
+
 mat4 rotationMatrix(vec3 axis, float angle)
 {
     //axis = normalize(axis);
@@ -140,6 +145,7 @@ vec3 rotateVector(vec3 src, vec3 tgt, vec3 vec) {
     vec4 _norm = R*vec4(vec,1.0);
     return _norm.xyz / _norm.w;
 }
+// end citation
 
 
 /************************************************************************************/
@@ -156,7 +162,6 @@ void main() {
     vec3 Li = normalize( vec3(Light.Position) - FragmentPosition.xyz );
     vec3 Vi = normalize( - FragmentPosition.xyz );
 
-    //vec4 tangeant = vec4(texture(AnasTexure, FragmentTexCoord).rgb,1.0f);
     vec2 ourTang = FragmentTexCoord*2 -1;
     vec4 tangeant = vec4(ourTang.x,ourTang.y,0.0f,1.0f);
     tangeant = vec4(normalize(tangeant.rgb),1.0f);
@@ -165,15 +170,23 @@ void main() {
     vec3 src = vec3(0.0, 0.0, 1.0);
     vec3 perterbedtange = rotateVector(src, tangeant.xyz, n);
 
-    float stretch = 50.0f;
-    vec3 stretchedWorldSpace = vec3(FragmentWorldSpace.x*(1+tangeant.y*stretch),FragmentWorldSpace.y*(1+tangeant.x*stretch),FragmentWorldSpace.z*(1+stretch));
+    vec3 axis = vec3(0.0f,0.0f,1.0f);
+    mat4 R = rotationMatrix(axis,M_PI/2);
+
+    // Rotate the vec by this rotation matrix
+    vec4 myRotated = R*tangeant;
+    myRotated= myRotated.xyzw / myRotated.w;
+
+    float stretch = 30.0f;
+    vec3 stretchedWorldSpace = vec3(FragmentWorldSpace.x*myRotated.x*stretch,FragmentWorldSpace.y*myRotated.y*stretch,FragmentWorldSpace.z);
+
     vec3 KsNOISE = vec3(snoise(stretchedWorldSpace*5));
 
-    vec3 Ks = vec3(0.6f) + 0.3f*KsNOISE;//vec3(texture(SpecTexure,FragmentTexCoord).rgb);
-    //vec3 Kd = vec3(snoise(FragmentWorldSpace));//vec3(texture(DiffuseTexure,FragmentTexCoord).rgb);
+    // This gives our stretched noise texture
+    vec3 Ks = vec3(0.6f) + 0.3f*KsNOISE;
     vec3 Kd = vec3(0.6f) + 0.1*KsNOISE;
 
-    // vec4 tangeant  = vec3(MV * vec4(texture(AnasTexure, FragmentTexCoord).rgb,1.0));
+    // Matrix used in anistropic equation in paper
     mat4 ourMat;
     ourMat[0] = vec4(Li,1.0f);
     ourMat[1] = vec4(Vi,1.0f);
@@ -184,6 +197,7 @@ void main() {
     float LT = 2.0f*whatWeNeed[0] - 1.0f;
     float VT = 2.0f*whatWeNeed[1] - 1.0f;
 
+    // These two, LN and VR are the final results used in final light equation
     float LN = sqrt(1-LT*LT);
     float VR = LN*sqrt(1-VT*VT) - LT*VT;
 
@@ -193,6 +207,9 @@ void main() {
             (Light.Ld *  Kd * max(LN,0.0f)+
             Light.Ls *  Ks * pow(max(VR,0.0f),100.0f)));
 
-
     FragColor = vec4(LightIntensity,1.0);
+
+    if(_showtangeants) FragColor = tangeant;
+    //
+    //FragColor = vec4(stretchedWorldSpace,1.0);
 }

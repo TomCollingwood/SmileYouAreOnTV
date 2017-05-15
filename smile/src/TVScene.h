@@ -65,6 +65,11 @@ private:
   bool frame = false;
   void switchChannels(ngl::ShaderLib *shader, int otherframe);
 
+  bool m_noiseon = true;
+  bool m_vignette = true;
+  bool m_showtangeants = false;
+  bool m_showssao = false;
+
   // Meshes
   std::unique_ptr<ngl::Obj> m_anistropicMesh, m_matteMesh, m_screenMesh, m_screenQuad, m_wood;
 
