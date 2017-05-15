@@ -101,9 +101,7 @@ float noise(vec2 st) {
 vec2 screenDistort(vec2 uv)
 {
 
-  uv -= vec2(.5,.5);
-  uv = uv*1.2*(1./1.2+2.*uv.x*uv.x*uv.y*uv.y);
-  uv += vec2(.5,.5);
+
 
   float fwidth = width;
   float fheight = height;
@@ -116,15 +114,25 @@ vec2 screenDistort(vec2 uv)
   {
   if(diff>0)
   {
-    uv.y*=fourbythree/ratio;
-    uv.y+=(1.0f-ratio/fourbythree)/2.0f;
+    float newwidth = height*(3.0f/4.0f);
+    float moveby = (width-newwidth)/(2.0f*width);
+    uv.x = mix(0.0f+moveby,1.0f-moveby,uv.x);
+
+//    uv.y*=ratio/fourbythree;
+//    uv.y+=(1.0f-ratio/fourbythree)/2.0f;
   }
   else
   {
-    uv.x*=fourbythree/ratio;
-    uv.x+=(1.0f-fourbythree/ratio)/2.0f;
+//    uv.x*=fourbythree/ratio;
+//    uv.x+=(1.0f-fourbythree/ratio)/2.0f;
   }
   }
+
+  uv -= vec2(.5,.5);
+  uv = uv*1.2*(1./1.2+2.*uv.x*uv.x*uv.y*uv.y);
+  uv += vec2(.5,.5);
+
+
 
 
 

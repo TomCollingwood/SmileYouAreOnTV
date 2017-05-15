@@ -255,8 +255,8 @@ void main() {
 
       // WOOD COLOUR
       vec3 woodback = vec3(55.0f/255.0f,34.0f/255.0f,23.0f/255.0f);
-      vec3 woodfront = vec3(84/255,59/255,16/255);
-
+     //  woodback = vec3(84/255,59/255,16/255);
+//
       // Calculate the light vector
       vec3 s = normalize( vec3(Light.Position) - FragmentPosition.xyz );
 
@@ -269,9 +269,11 @@ void main() {
       float power = beckmannSpecular(s,v,np,1.0);
 
       // energy conservation
-      float Ks = 0.2f;
-      float kD = 1.0f-Ks;
+      float Ks = 0.1f;
+      float kD = 0.4f;
+      float kA = 1.0f-Ks-kD;
 
-      FragColor =   Ks*pow( max( dot(r,v), 0.0 ), power ) +
-                    kD*vec4(woodback+0.03*vec3(pattern),1.0); //vec4(power,power,power,1.0);//+ vec4(0.5f,0.5f,0.5f,1.0f) *
+      FragColor =   Ks*pow( max( dot(r,v), 0.0 ), power ) + // spec
+                    kD*vec4(woodback+0.03*vec3(pattern),1.0)*max(dot(s,n),0.0f) //diffuse
+                    +kA*vec4(woodback+0.03*vec3(pattern),1.0); //ambient
 }

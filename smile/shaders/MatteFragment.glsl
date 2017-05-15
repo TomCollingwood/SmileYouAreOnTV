@@ -9,6 +9,7 @@
 in vec3 FragmentPosition;
 in vec3 FragmentNormal;
 in vec2 FragmentTexCoord;
+in vec3 FragmentWorldSpace;
 in mat4 _MV;
 
 // This is no longer a built-in variable
@@ -172,21 +173,22 @@ void main() {
 
   // begin citation
   // code edited / inspired from http://stackoverflow.com/a/5284527
-  int scale = 1000;
+  int scale = 1400;
+  float lesstall = 0.7f;
   vec2 tmpst = FragmentTexCoord;
-  float s11 = snoise(vec3(tmpst*scale,0.0f));
+  float s11 = lesstall*snoise(vec3(tmpst*scale,0.0f));
 
   tmpst = FragmentTexCoord+off.xy;
-  float s01 = snoise(vec3(tmpst*scale,0.0f));
+  float s01 = lesstall*snoise(vec3(tmpst*scale,0.0f));
 
   tmpst = FragmentTexCoord+off.zy;
-  float s21 = snoise(vec3(tmpst*scale,0.0f));
+  float s21 = lesstall*snoise(vec3(tmpst*scale,0.0f));
 
   tmpst = FragmentTexCoord+off.yx;
-  float s10 = snoise(vec3(tmpst*scale,0.0f));
+  float s10 = lesstall*snoise(vec3(tmpst*scale,0.0f));
 
   tmpst = FragmentTexCoord+off.yz;
-  float s12 =snoise(vec3(tmpst*scale,0.0f));
+  float s12 =lesstall*snoise(vec3(tmpst*scale,0.0f));
 
   vec3 va = normalize(vec3(size.xy,s21-s01));
   vec3 vb = normalize(vec3(size.yx,s12-s10));
@@ -209,12 +211,12 @@ void main() {
 
   vec3 r = reflect( -s, np );
 
-  float power = beckmannSpecular(s,v,np,0.9f);
+  float power = beckmannSpecular(s,v,np,1.0f);
 
   // Energy conservation
   float Ks = 0.3f;
-  float Kd = 1.0f-Ks;
+  float Kd = 1-Ks;
 
-  FragColor =  Ks*vec4(pow( max( dot(r,v), 0.0 ), power ))+Kd*vec4(0.05f*snoise(vec3(FragmentTexCoord*scale,0.0f)));
+  FragColor =  Ks*vec4(pow( max( dot(r,v), 0.0 ), power*100 ))+Kd*vec4(mix(0.2,0.27,snoise(vec3(FragmentTexCoord*scale,0.0f))))*max(dot(s,n),0.0f);
 
 }

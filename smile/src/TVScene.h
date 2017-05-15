@@ -69,6 +69,7 @@ private:
   bool m_vignette = true;
   bool m_showtangeants = false;
   bool m_showssao = false;
+  bool m_ssaoonly = false;
 
   // Meshes
   std::unique_ptr<ngl::Obj> m_anistropicMesh, m_matteMesh, m_screenMesh, m_screenQuad, m_wood;

@@ -71,7 +71,7 @@ int main() {
 
 
     // Create our window in a platform agnostic manner
-    int width = 960; int height = 720;
+    int width = 1280; int height = 720;
     GLFWwindow* window = glfwCreateWindow(width, // width
                                           height, // height
                                           "Smile!", // title

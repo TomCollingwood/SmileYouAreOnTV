@@ -5,6 +5,7 @@
 uniform sampler2D texFramebuffer;
 
 uniform sampler2D texSSAO;
+uniform bool _showssao;
 uniform int width;
 uniform int height;
 // This is passed on from the vertex shader
@@ -92,7 +93,9 @@ void main() {
                    (FragmentTexCoord.xy*resolution+ vec2(1.0, -1.0))* inverseVP,
                    (FragmentTexCoord.xy*resolution+ vec2(-1.0, 1.0))* inverseVP,
                    (FragmentTexCoord.xy*resolution+ vec2(1.0, 1.0))* inverseVP,
-                   vec2(FragmentTexCoord.xy*resolution* inverseVP)) * texture(texSSAO,FragmentTexCoord);
+                   vec2(FragmentTexCoord.xy*resolution* inverseVP)) ;
+
+  if(_showssao) FragColor*=texture(texSSAO,FragmentTexCoord);
 
  // FragColor = texture(texSSAO,FragmentTexCoord);
 

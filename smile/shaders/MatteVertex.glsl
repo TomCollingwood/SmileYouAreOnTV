@@ -25,6 +25,7 @@ layout (location=1) in vec2 VertexTexCoord;
 smooth out vec3 FragmentPosition;
 smooth out vec3 FragmentNormal;
 smooth out vec2 FragmentTexCoord;
+smooth out vec3 FragmentWorldSpace;
 
 out mat4 _MV;
 
@@ -36,5 +37,6 @@ void main() {
     FragmentPosition = vec3(MV * vec4(VertexPosition,1.0));
     FragmentNormal = N * VertexNormal;
     FragmentTexCoord = VertexTexCoord;
+    FragmentWorldSpace = VertexPosition;
     _MV = MV;
 }

@@ -89,6 +89,15 @@ void TVScene::handleKey(int _key)
       if(m_showssao) m_showssao=false;
       else m_showssao=true;
       break;
+
+    case GLFW_KEY_6:
+      m_noiseon = true;
+      m_vignette = true;
+      m_showtangeants=false;
+      if(m_ssaoonly) m_ssaoonly=false;
+      else m_ssaoonly=true;
+      break;
+
     }
 }
 
@@ -102,7 +111,7 @@ void TVScene::initGL() noexcept {
     std::cout<<"HEYY YOOUU"<<stuff<<std::endl;
 
     m_height=720;
-    m_width=960;
+    m_width=1280;
 
     // Set background colour
     glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
@@ -147,7 +156,7 @@ void TVScene::initGL() noexcept {
 
     //(*shader)["Matte"]->use();
 
-    m_matteMesh.reset(new ngl::Obj("models/matte.obj"));
+    m_matteMesh.reset(new ngl::Obj("models/matte2.obj"));
     m_matteMesh->createVAO();
 
     m_screenMesh.reset(new ngl::Obj("models/screen.obj"));
@@ -156,7 +165,7 @@ void TVScene::initGL() noexcept {
     m_screenQuad.reset(new ngl::Obj("models/screenQUAD.obj"));
     m_screenQuad->createVAO();
 
-    m_wood.reset(new ngl::Obj("models/wood.obj"));
+    m_wood.reset(new ngl::Obj("models/wood2.obj"));
     m_wood->createVAO();
 
 
@@ -613,6 +622,7 @@ void TVScene::paintGL() noexcept {
 
     (*shader)["ScreenQuad"]->use();
     passMatrices(shader->getProgramID("ScreenQuad"));
+    glUniform1i(glGetUniformLocation(shader->getProgramID("ScreenQuad"), "_showssao"), m_showssao);
 
     (*shader)["Wood"]->use();
     passMatrices(shader->getProgramID("Wood"));
@@ -704,83 +714,81 @@ void TVScene::paintGL() noexcept {
 //if(m_showssao)
 //{
   // gBuffer (depth + normals)
-  glBindFramebuffer(GL_FRAMEBUFFER,m_gBuffer);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  GLenum drawBuffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-  glDrawBuffers(2, drawBuffers);
-  (*shader)["GBuffer"]->use();
-  m_anistropicMesh->draw();
-  m_matteMesh->draw();
-  m_wood->draw();
-  m_screenMesh->draw();
+  if(m_ssaoonly | m_showssao)
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER,m_gBuffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GLenum drawBuffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+    glDrawBuffers(2, drawBuffers);
+    (*shader)["GBuffer"]->use();
+    m_anistropicMesh->draw();
+    m_matteMesh->draw();
+    m_wood->draw();
+    m_screenMesh->draw();
 
-  // SSAO
-  glBindFramebuffer(GL_FRAMEBUFFER,m_SSAOframebuffer);
+    // SSAO
+    glBindFramebuffer(GL_FRAMEBUFFER,m_SSAOframebuffer);
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glEnable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, gPosition);
-  glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_2D, gNormal);
-  (*shader)["SSAO"]->use();
-  m_screenQuad->draw();
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, gNormal);
+    (*shader)["SSAO"]->use();
+    m_screenQuad->draw();
 
-  // SSAO Blur
-  glBindFramebuffer(GL_FRAMEBUFFER,m_SSAOBlurframebuffer);
+    // SSAO Blur
+    if(m_ssaoonly) glBindFramebuffer(GL_FRAMEBUFFER,0);
+    else {glBindFramebuffer(GL_FRAMEBUFFER,m_SSAOBlurframebuffer);};
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glEnable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
-  glActiveTexture(GL_TEXTURE8);
-  glBindTexture(GL_TEXTURE_2D, m_SSAOframebufferTex);
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_2D, m_SSAOframebufferTex);
 
-  (*shader)["SSAOBlur"]->use();
-  //glUniform1i(glGetUniformLocation(shader->getProgramID("SSAOBlur"), "texFramebuffer"), 8);
-  m_screenQuad->draw();
-
-
-
-
-  glBindFramebuffer(GL_FRAMEBUFFER, m_FXAAframebuffer[whichFrame]);
-  glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glEnable(GL_DEPTH_TEST);
-
-  (*shader)["Anisotropic"]->use();
-  m_anistropicMesh->draw();
-
-  (*shader)["Matte"]->use();
-  m_matteMesh->draw();
-
-  (*shader)["Wood"]->use();
-  m_wood->draw();
-
-  (*shader)["TVScreen"]->use();
-  switchChannels(shader,otherFrame);
-  m_screenMesh->draw();
-
-
-  // DRAW TO SCREEN
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glEnable(GL_DEPTH_TEST);
-  glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  (*shader)["ScreenQuad"]->use();
-  pid = shader->getProgramID("ScreenQuad");
-  glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3+whichFrame);
-  m_screenQuad->draw();
+    (*shader)["SSAOBlur"]->use();
+    //glUniform1i(glGetUniformLocation(shader->getProgramID("SSAOBlur"), "texFramebuffer"), 8);
+    m_screenQuad->draw();
+  }
 
 
 
+  if(!m_ssaoonly)
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, m_FXAAframebuffer[whichFrame]);
+    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  //
+    glEnable(GL_DEPTH_TEST);
+
+    (*shader)["Anisotropic"]->use();
+    m_anistropicMesh->draw();
+
+    (*shader)["Matte"]->use();
+    m_matteMesh->draw();
+
+    (*shader)["Wood"]->use();
+    m_wood->draw();
+
+    (*shader)["TVScreen"]->use();
+    switchChannels(shader,otherFrame);
+    m_screenMesh->draw();
 
 
+    // DRAW TO SCREEN
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    (*shader)["ScreenQuad"]->use();
+    pid = shader->getProgramID("ScreenQuad");
+    glUniform1i(glGetUniformLocation(pid, "texFramebuffer"), 3+whichFrame);
+    m_screenQuad->draw();
+  }
 }
 
 void TVScene::switchChannels(ngl::ShaderLib *shader, int otherFrame)
