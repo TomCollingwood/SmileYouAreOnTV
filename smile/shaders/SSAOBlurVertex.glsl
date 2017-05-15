@@ -1,15 +1,6 @@
-
-/// @author Richard Southern
+/// @author Tom Collingwood
 
 #version 410 core
-
-// The modelview and projection matrices are no longer given in OpenGL 4.2
-
-
-/* NOTES
-        -uniform is the same for every one of million verticies / parallel processes
-        -attributes "in" are different for each vertex / parallel process
-*/
 
 // The vertex position attribute
 layout (location=0) in vec3 VertexPosition;

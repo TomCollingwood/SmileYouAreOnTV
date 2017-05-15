@@ -1,10 +1,10 @@
-/// @author Richard Southern
+/// @author Tom Collingwood & Joey de Vries of learnopengl.com
 
 #version 410 core
 
 uniform int width;
 uniform int height;
-// This is passed on from the vertex shader
+
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D texNoise;
@@ -16,6 +16,8 @@ in vec2 FragmentTexCoord;
 
 layout (location=0) out vec4 FragColor;
 
+// code adapted from https://learnopengl.com/#!Advanced-Lighting/SSAO
+// begin citation
 void main() {
   vec2 noiseScale = vec2(width/4.0, height/4.0);
 
@@ -54,3 +56,5 @@ void main() {
   FragColor = vec4(vec3(occlusion),1.0f);
 
 }
+
+// end citation

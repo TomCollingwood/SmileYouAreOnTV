@@ -1,4 +1,4 @@
-/// @author Richard Southern
+/// @author Template by Richard Southern, edited heavily by Tom Collingwood
 
 #version 410 core
 
@@ -33,9 +33,6 @@ vec2 offsets[9];
 vec3 sampleTex[9];
 
 vec3 col;
-
-
-
 
 /************************************************************************************/
 
@@ -75,9 +72,7 @@ uniform MaterialInfo Material = MaterialInfo(
 /************************************************************************************/
 
 
-
-//https://thebookofshaders.com/edit.php#11/wood.frag
-//https://thebookofshaders.com/11/
+// begin code citation from https://thebookofshaders.com/edit.php#11/wood.frag
 float random (in vec2 st) {
     return fract(sin(dot(st.xy,
                          vec2(12.9898,78.233)))
@@ -93,49 +88,38 @@ float noise(vec2 st) {
                 mix( random( i + vec2(0.0,1.0) ),
                      random( i + vec2(1.0,1.0) ), u.x), u.y);
 }
+// end citation
 
-
-// code below edited from https://www.shadertoy.com/view/ldjGzV
+// functions / code below edited from https://www.shadertoy.com/view/ldjGzV
 // begin citation
 
 vec2 screenDistort(vec2 uv)
 {
-
-
-
+  //begin my edit
   float fwidth = width;
   float fheight = height;
 
   float ratio = fwidth/fheight;
   float fourbythree = 4.0f/3.0f;
 
-  float diff = ratio-fourbythree;
   if(_camera==1)
   {
-  if(diff>0)
-  {
-    float newwidth = height*(3.0f/4.0f);
-    float moveby = (width-newwidth)/(2.0f*width);
-    uv.x = mix(0.0f+moveby,1.0f-moveby,uv.x);
-
-//    uv.y*=ratio/fourbythree;
-//    uv.y+=(1.0f-ratio/fourbythree)/2.0f;
+    uv.x = mix(0.15,1.0-0.15,uv.x);
+    /*
+      Above crops the screen for 720p to display on 4:3 TV Screen
+      EQUATION THAT SHOULD WORK FOR ALL RESOLUTIONS:
+        float newwidth = fheight*(4.0f/3.0f);
+        float moveby = (fwidth-newwidth)/(2.0f*fwidth);
+        uv.x = mix(moveby,1.0-moveby,uv.x);
+      moveby for 720p should be 0.125
+      For some reason does not work :-(
+    */
   }
-  else
-  {
-//    uv.x*=fourbythree/ratio;
-//    uv.x+=(1.0f-fourbythree/ratio)/2.0f;
-  }
-  }
+  // end my edit
 
   uv -= vec2(.5,.5);
   uv = uv*1.2*(1./1.2+2.*uv.x*uv.x*uv.y*uv.y);
   uv += vec2(.5,.5);
-
-
-
-
-
 
   return uv;
 }
@@ -150,13 +134,10 @@ vec3 getVideo(vec2 uv,float xscale, float yscale)
   vec2 look = uv;
   float window = 1./(1.+20.*(look.y-mod(iGlobalTime/4.,1.))*(look.y-mod(iGlobalTime/4.,1.)));
   look.x = look.x + sin(look.y*10. + iGlobalTime)/50.*onOff(4.,4.,.3)*(1.+cos(iGlobalTime*80.))*window;
-  //float vShift = 0.4*onOff(2.,3.,.9)*(sin(iGlobalTime)*sin(iGlobalTime*20.) +
-  //                   (0.5 + 0.1*sin(iGlobalTime*200.)*cos(iGlobalTime)));
-  look.y = mod(look.y ,1);//+ vShift, 1.);
-  vec3 video ;//= vec3(texture(screenTexture,look));
+  look.y = mod(look.y ,1);
+  vec3 video ;
 
-
-  // below adapted from https://learnopengl.com/#!Advanced-OpenGL/Framebuffers Accesed 17/02
+  // getVideo blur below is adapted from https://learnopengl.com/#!Advanced-OpenGL/Framebuffers Accesed 17/02
   float fwidth = width;
   float fheight = height;
   float offsetx = 1.0f/fwidth;
@@ -186,15 +167,10 @@ vec3 getVideo(vec2 uv,float xscale, float yscale)
   look.x-=1.0f*(xscale-1.0f)/2;
   look.y-=1.0f*(yscale-1.0f)/2;
 
-  //look.x=clamp(uv.x,0.0f,1.0f);
-  //look.y=clamp(uv.y,0.0f,1.0f);
-
-// if clamped
   vec3 col = vec3(0.0);
   // please forgive me shader overlords
   if(look.x<1.0f && look.x>0.0f && look.y<1.0f && look.y>0.0f)
   {
-
     for(int i = 0; i < 9; i++)
     {
     sampleTex[i].r = vec3(texture(screenTexture, vec2(look.x + offsets[i].x + 0.005f,look.y+ offsets[i].y))).r;
@@ -203,17 +179,11 @@ vec3 getVideo(vec2 uv,float xscale, float yscale)
     col += sampleTex[i] * kernel[i];
     }
   }
-    video = col;
-
-
-
-
-//  video[0]= texture(screenTexture,vec2(look.x+0.005f,look.y)).r;
-//  video[1]= texture(screenTexture,vec2(look.x,look.y)).g;
-//  video[2]= texture(screenTexture,vec2(look.x-0.005f,look.y)).b;
+  video = col;
+  // end of blur citation
   return video;
 }
-//end of citation
+//end of shader toy citation
 
 
 vec3 LightIntensity;
@@ -256,28 +226,32 @@ void main() {
   vec3 r = reflect( -s, n );
   //-----------------------------------------------------------------------------
 
+  // Distort UV to get bulge effect
   vec2 uv = screenDistort(FragmentTexCoord);
 
-  float vigAmt = 4.+.3*sin(iGlobalTime + 5.*cos(iGlobalTime*5.));
-  float vignette = (1.-vigAmt*(uv.y-.5)*(uv.y-.5))*(1.-vigAmt*(uv.x-.5)*(uv.x-.5));
-
+  // Get video from texture
   vec3 video = getVideo(uv,_xscale,_yscale)*_brightness;
 
+  // Add noise
   if(_noiseon) video+=noise(FragmentTexCoord*100.0f)/10.0f;
 
+  // Add vignette
+  float vigAmt = 4.+.3*sin(iGlobalTime + 5.*cos(iGlobalTime*5.));
+  float vignette = (1.-vigAmt*(uv.y-.5)*(uv.y-.5))*(1.-vigAmt*(uv.x-.5)*(uv.x-.5));
   if(_vignetteon) video*=vignette;
 
-//  float speedcol = 3.0f;
-//  float amount = 0.1f;
-//  video[0]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol)/2.0f));
-//  video[1]+=mix(-amount,amount,(1.0f+cos(iGlobalTime/speedcol)/2.0f));
-//  video[2]+=mix(-amount,amount,(1.0f+sin(iGlobalTime/speedcol + 180))/2.0f);
+  // Beckmann specular
+  float power = beckmannSpecular(s,v,n,1.0f);
 
+  float Ks = 0.5f;
+  float Kd = 0.1f;
+  float Ka = 1.0f-Kd-Ks;
 
-  float power = 0.001f* beckmannSpecular(s,v,n,0.03);
-
-  FragColor = vec4(_tvon*video,1.0f)+vec4(power,power,power,1.0f);
-
-
+  FragColor = vec4(_tvon*video,1.0f)+ //emmitted
+                      +vec4(
+                        Ks*pow( max( dot(r,v), 0.0 ), 500*power )*vec3(1.0f) // spec
+                        +Kd*max(dot(s,n),0.0f)*vec3(0.01f) //diffuse
+                        +Ka*vec3(0.01f), //ambient
+                      1.0f);
 
 }

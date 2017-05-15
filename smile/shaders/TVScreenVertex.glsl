@@ -1,5 +1,5 @@
 
-/// @author Richard Southern
+/// @author Richard Southern & Tom Collingwood
 
 #version 410 core
 

@@ -1,4 +1,4 @@
-/// @author Richard Southern
+/// @author  Richard Southern & Tom Collingwood
 
 #version 410 core
 
@@ -50,17 +50,16 @@ uniform MaterialInfo Material = MaterialInfo(
 
 /************************************************************************************/
 
-//https://thebookofshaders.com/edit.php#11/wood.frag
-//https://thebookofshaders.com/11/
+// begin citation from https://thebookofshaders.com/edit.php#11/wood.frag
 float random (in vec2 st) {
     return fract(sin(dot(st.xy,
                          vec2(12.9898,78.233)))
                 * 43758.5453123);
 }
 
+
 // Value noise by Inigo Quilez - iq/2013
 // https://www.shadertoy.com/view/lsf3WH
-
 vec3 random3(vec3 c) {
     float j = 4096.0*sin(dot(c,vec3(17.0, 59.4, 15.0)));
     vec3 r;
@@ -108,10 +107,6 @@ float snoise(vec3 p) {
     return dot(d, vec4(52.0));
 }
 
-
-
-//https://thebookofshaders.com/edit.php#11/wood.frag
-//https://thebookofshaders.com/11/
 float noise(vec2 st) {
     vec2 i = floor(st);
     vec2 f = fract(st);
@@ -134,6 +129,7 @@ float lines(in vec2 pos, float b){
                     .5+b*.5+ snoise(vec3(pos*2,0.0f)),
                     abs((sin(pos.x*3.1415)+b*2.0))*.5 + snoise(vec3(pos*2.43,0.0f)));
 }
+// end book of shaders citation
 
 
 
@@ -156,11 +152,11 @@ float beckmannSpecular(
   float roughness) {
   return beckmannDistribution(dot(surfaceNormal, normalize(lightDirection + viewDirection)), roughness);
 }
-//
+// end citation
 
 
-/** From http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
-  */
+//begin citation from http://www.neilmendoza.com/glsl-rotation-about-an-arbitrary-axis/
+
 mat4 rotationMatrix(vec3 axis, float angle)
 {
     //axis = normalize(axis);
@@ -191,6 +187,7 @@ vec3 rotateVector(vec3 src, vec3 tgt, vec3 vec) {
     vec4 _norm = R*vec4(vec,1.0);
     return _norm.xyz / _norm.w;
 }
+// end citation
 
 
 
@@ -255,8 +252,7 @@ void main() {
 
       // WOOD COLOUR
       vec3 woodback = vec3(55.0f/255.0f,34.0f/255.0f,23.0f/255.0f);
-     //  woodback = vec3(84/255,59/255,16/255);
-//
+
       // Calculate the light vector
       vec3 s = normalize( vec3(Light.Position) - FragmentPosition.xyz );
 

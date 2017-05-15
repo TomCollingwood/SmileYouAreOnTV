@@ -1,5 +1,5 @@
 
-/// @author Richard Southern
+/// @author Richard Southern & Tom Collingwood
 
 #version 410 core
 
@@ -7,11 +7,6 @@
 uniform mat4 MV;
 uniform mat4 MVP;
 uniform mat3 N; // This is the inverse transpose of the MV matrix
-
-/* NOTES
-        -uniform is the same for every one of million verticies / parallel processes
-        -attributes "in" are different for each vertex / parallel process
-*/
 
 // The vertex position attribute
 layout (location=0) in vec3 VertexPosition;

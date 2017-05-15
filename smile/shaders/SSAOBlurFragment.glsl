@@ -1,7 +1,9 @@
+/// @author Tom Collingwood & Joey de Vries of learnopengl.com
+
 #version 410 core
 in vec2 TexCoords;
 
-// Taken from and edited from https://learnopengl.com/#!Advanced-Lighting/SSAO
+// Code taken from and edited from https://learnopengl.com/#!Advanced-Lighting/SSAO
 
 uniform sampler2D ssaoInput;
 

@@ -40,16 +40,19 @@ void TVScene::handleKey(int _key)
 {
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
     switch(_key) {
-    case GLFW_KEY_A: //exit the application
+    // PREVIOUS CHANNEL
+    case GLFW_KEY_A:
         channel--;
         if(channel<0) channel=0;
         else changechannel=true;
         break;
+    // NEXT CHANNEL
     case GLFW_KEY_D:
         channel++;
         if(channel>maxChannel) channel=maxChannel;
         else changechannel=true;
         break;
+    // TURN TV ON / OFF
     case GLFW_KEY_S:
         if(tvon) tvstate = 1;
         else
@@ -58,30 +61,34 @@ void TVScene::handleKey(int _key)
           tvsteps=70;
         }
         break;
-
+    // TURN NOISE & VIGNETTE ON
     case GLFW_KEY_1:
       m_noiseon = true;
       m_vignette = true;
       m_showtangeants=false;
       m_showssao=false;
       break;
+    // TURN VIGNETTE OFF & NOISE ON
     case GLFW_KEY_2:
       m_noiseon = true;
       m_vignette = false;
       m_showtangeants=false;
       m_showssao=false;
       break;
+    // TURN NOISE & VIGNETTE OFF
     case GLFW_KEY_3:
       m_noiseon = false;
       m_vignette = false;
       m_showtangeants=false;
       m_showssao=false;
       break;
+    // SHOW TANGENT TOGGLE
     case GLFW_KEY_4:
       if(m_showtangeants) m_showtangeants =false;
       else m_showtangeants=true;
       m_showssao=false;
       break;
+    // SSAO TOGGLE
     case GLFW_KEY_5:
       m_noiseon = true;
       m_vignette = true;
@@ -89,7 +96,7 @@ void TVScene::handleKey(int _key)
       if(m_showssao) m_showssao=false;
       else m_showssao=true;
       break;
-
+    //ONLY SHOW SSAO TOGGLE
     case GLFW_KEY_6:
       m_noiseon = true;
       m_vignette = true;
@@ -386,6 +393,9 @@ void TVScene::initGL() noexcept {
     glUniform1i(glGetUniformLocation(pid, "screenTexture"), 3);
     glUniform1f(glGetUniformLocation(pid, "_xscale"), xscale);
     glUniform1f(glGetUniformLocation(pid, "_yscale"), yscale);
+
+    glUniform1f(glGetUniformLocation(pid, "width"), m_width);
+    glUniform1f(glGetUniformLocation(pid, "height"), m_height);
     glUniform1f(glGetUniformLocation(pid, "_brightness"), brightness);
     glUniform1i(glGetUniformLocation(pid, "_tvon"), tvon);
     glUniform1i(glGetUniformLocation(pid, "_vignetteon"), 1);
@@ -399,10 +409,12 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
 
   ngl::ShaderLib *shader=ngl::ShaderLib::instance();
 
-    GLuint pid = shader->getProgramID("TVScreen");
+
 
     m_width = width; m_height = height;
+    std::cout<<"Width/height:"<<m_width<<"/"<<m_height<<std::endl;
 
+    GLuint pid = shader->getProgramID("TVScreen");
     glUniform1i(glGetUniformLocation(pid, "height"), m_height);
     glUniform1i(glGetUniformLocation(pid, "width"), m_width);
 

@@ -1,4 +1,4 @@
-/// @author Richard Southern
+/// @author Tom Collingwood, edited from Richard Southern
 
 #version 410 core
 

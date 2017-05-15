@@ -1,4 +1,6 @@
-#version 330 core
+/// @author Tom Collingwood
+
+#version 410 core
 
 in vec3 FragPos;
 in vec3 Normal;

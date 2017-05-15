@@ -1,4 +1,4 @@
-/// @author Richard Southern
+/// @author Tom Collingwood
 
 #version 410 core
 
@@ -147,16 +147,14 @@ vec3 LightIntensity;
 
 void main() {
 
-//  V = v
-//  R = r
-//  L = s
-//  N = FragmentNormal
-
+    // Normal
     vec3 n = normalize( FragmentNormal );
+    // Light direction
     vec3 Li = normalize( vec3(Light.Position) - FragmentPosition.xyz );
+    // Camera direction
     vec3 Vi = normalize( - FragmentPosition.xyz );
 
-    //vec4 tangeant = vec4(texture(AnasTexure, FragmentTexCoord).rgb,1.0f);
+    // Take our tangeant from UVs and interpret it
     vec2 ourTang = FragmentTexCoord*2 -1;
     vec4 tangeant = vec4(ourTang.x,ourTang.y,0.0f,1.0f);
     tangeant = vec4(normalize(tangeant.rgb),1.0f);
@@ -165,15 +163,15 @@ void main() {
     vec3 src = vec3(0.0, 0.0, 1.0);
     vec3 perterbedtange = rotateVector(src, tangeant.xyz, n);
 
+    // We stretch the noise to get brushed metal look
     float stretch = 50.0f;
     vec3 stretchedWorldSpace = vec3(FragmentWorldSpace.x*(1+tangeant.y*stretch),FragmentWorldSpace.y*(1+tangeant.x*stretch),FragmentWorldSpace.z*(1+stretch));
     vec3 KsNOISE = vec3(snoise(stretchedWorldSpace*5));
 
-    vec3 Ks = vec3(0.6f) + 0.3f*KsNOISE;//vec3(texture(SpecTexure,FragmentTexCoord).rgb);
-    //vec3 Kd = vec3(snoise(FragmentWorldSpace));//vec3(texture(DiffuseTexure,FragmentTexCoord).rgb);
+    vec3 Ks = vec3(0.6f) + 0.3f*KsNOISE;
     vec3 Kd = vec3(0.6f) + 0.1*KsNOISE;
 
-    // vec4 tangeant  = vec3(MV * vec4(texture(AnasTexure, FragmentTexCoord).rgb,1.0));
+    // Our matrix used in the anistopic paper cited / referenced in my report
     mat4 ourMat;
     ourMat[0] = vec4(Li,1.0f);
     ourMat[1] = vec4(Vi,1.0f);
@@ -184,15 +182,15 @@ void main() {
     float LT = 2.0f*whatWeNeed[0] - 1.0f;
     float VT = 2.0f*whatWeNeed[1] - 1.0f;
 
+    // LN and VR needed for the final light equation
     float LN = sqrt(1-LT*LT);
     float VR = LN*sqrt(1-VT*VT) - LT*VT;
 
     LightIntensity = (
-            Light.La *  Kd +
+            Light.La *  Kd + //ambient
              max(dot(n,Li),0.0f)*
             (Light.Ld *  Kd * max(LN,0.0f)+
-            Light.Ls *  Ks * pow(max(VR,0.0f),100.0f)));
-
+            Light.Ls *  Ks * pow(max(VR,0.0f),100.0f))); //spec + diffuse
 
     FragColor = vec4(LightIntensity,1.0);
 }
