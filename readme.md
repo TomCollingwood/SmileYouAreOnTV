@@ -1,3 +1,7 @@
+https://github.com/TomCollingwood/SmileYouAreOnTV
+Thomas Collingwood
+i7449874
+
 ##  A C++ rendering project with (includes links to references):
 
 * Video feedback loop (achieved ping ponging framebuffers).
