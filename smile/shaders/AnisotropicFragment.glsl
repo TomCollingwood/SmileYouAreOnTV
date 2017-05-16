@@ -10,6 +10,10 @@ in vec2 FragmentTexCoord;
 in vec3 FragmentWorldSpace;
 in mat4 _MV;
 
+#define 	M_PI   3.1415926535
+
+uniform bool _showtangeants;
+
 // This is no longer a built-in variable
 layout (location=0) out vec4 FragColor;
 
@@ -159,9 +163,16 @@ void main() {
     vec4 tangeant = vec4(ourTang.x,ourTang.y,0.0f,1.0f);
     tangeant = vec4(normalize(tangeant.rgb),1.0f);
 
+//    vec3 prepeterb = vec2(0.0f);
+//    prepeterb.x = tangeant.x * cos(M_PI/2.0f) - tangeant.y * sin(M_PI/2.0f);
+//    prepeterb.y = tangeant.x * sin(M_PI/2.0f) + tangeant.y * cos(M_PI/2.0f);
+
+
     // The source is just up in the Z-direction
     vec3 src = vec3(0.0, 0.0, 1.0);
     vec3 perterbedtange = rotateVector(src, tangeant.xyz, n);
+
+
 
     // We stretch the noise to get brushed metal look
     float stretch = 50.0f;
@@ -193,4 +204,6 @@ void main() {
             Light.Ls *  Ks * pow(max(VR,0.0f),100.0f))); //spec + diffuse
 
     FragColor = vec4(LightIntensity,1.0);
+
+    if(_showtangeants) FragColor = tangeant;
 }

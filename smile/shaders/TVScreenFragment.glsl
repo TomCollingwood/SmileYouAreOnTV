@@ -250,8 +250,8 @@ void main() {
   FragColor = vec4(_tvon*video,1.0f)+ //emmitted
                       +vec4(
                         Ks*pow( max( dot(r,v), 0.0 ), 500*power )*vec3(1.0f) // spec
-                        +Kd*max(dot(s,n),0.0f)*vec3(0.01f) //diffuse
-                        +Ka*vec3(0.01f), //ambient
+                        +Kd*max(dot(s,n),0.0f)*vec3(0.05f) //diffuse
+                        +Ka*vec3(0.05f), //ambient
                       1.0f);
 
 }

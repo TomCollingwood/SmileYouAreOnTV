@@ -11,8 +11,6 @@ uniform int height;
 // This is passed on from the vertex shader
 in vec2 FragmentTexCoord;
 
-
-
 //begin code citation from:
 //https://github.com/mattdesl/glsl-fxaa/blob/master/fxaa.glsl
 

@@ -26,6 +26,7 @@ struct LightInfo {
 
 // We'll have a single light in the scene with some default values
 uniform LightInfo Light = LightInfo(
+      //vec4(0.0, 0.0, 10.0, 1.0),
             vec4(0.0, 10.0, 3.0, 1.0),   // position
             vec3(0.1, 0.1, 0.1),        // La
             vec3(0.5, 0.5, 0.5),        // Ld
@@ -251,7 +252,8 @@ void main() {
 
 
       // WOOD COLOUR
-      vec3 woodback = vec3(55.0f/255.0f,34.0f/255.0f,23.0f/255.0f);
+      //vec3 woodback = vec3(55.0f/255.0f,34.0f/255.0f,23.0f/255.0f);
+      vec3 woodback = vec3(65.0f/255.0f,44.0f/255.0f,33.0f/255.0f);
 
       // Calculate the light vector
       vec3 s = normalize( vec3(Light.Position) - FragmentPosition.xyz );
@@ -266,7 +268,7 @@ void main() {
 
       // energy conservation
       float Ks = 0.1f;
-      float kD = 0.4f;
+      float kD = 0.1f;
       float kA = 1.0f-Ks-kD;
 
       FragColor =   Ks*pow( max( dot(r,v), 0.0 ), power ) + // spec

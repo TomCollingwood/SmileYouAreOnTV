@@ -1,3 +1,5 @@
+/// @author Richard Southern
+
 #ifndef TRACKBALLCAMERA_H
 #define TRACKBALLCAMERA_H
 

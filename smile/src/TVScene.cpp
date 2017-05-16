@@ -190,13 +190,13 @@ void TVScene::initGL() noexcept {
     glGenFramebuffers(1, &m_SSAOBlurframebuffer);
     glGenTextures(1, &m_SSAOBlurframebufferTex);
 
-    glGenFramebuffers(2, &m_FXAAframebuffer[0]);
+    glGenFramebuffers(2, &m_PingPongframebuffer[0]);
     glGenTextures(2, &m_FXAAframebufferTex[0]);
     glGenRenderbuffers(4, &m_rboDepthStencil[0]);
 
     // FIRST FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE3);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_FXAAframebuffer[0]);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_PingPongframebuffer[0]);
     glBindTexture(GL_TEXTURE_2D, m_FXAAframebufferTex[0]);
     glTexImage2D(
            GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
@@ -216,7 +216,7 @@ void TVScene::initGL() noexcept {
 
     // SECOND FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE4);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_FXAAframebuffer[1]);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_PingPongframebuffer[1]);
     glTexImage2D(
            GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
        );
@@ -284,7 +284,7 @@ void TVScene::initGL() noexcept {
 
 
     // Generate Ambient Occlusion Kernel
-    // Adapted from : https://learnopengl.com/#!Advanced-Lighting/SSAO
+    // Begin citation: adapted from : https://learnopengl.com/#!Advanced-Lighting/SSAO
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // random floats between 0.0 - 1.0
     std::default_random_engine generator;
 
@@ -311,6 +311,8 @@ void TVScene::initGL() noexcept {
             0.0f);
         SSAONoise.push_back(noise);
     }
+
+    // end citation
 
     glGenFramebuffers(1, &m_gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
@@ -418,8 +420,11 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
     glUniform1i(glGetUniformLocation(pid, "height"), m_height);
     glUniform1i(glGetUniformLocation(pid, "width"), m_width);
 
+    // Have to resize the framebuffers
+    // Best way is to delete and create again
+
     m_ratio = m_width / (float) m_height;
-    glDeleteFramebuffers(2, &m_FXAAframebuffer[0]);
+    glDeleteFramebuffers(2, &m_PingPongframebuffer[0]);
     glDeleteFramebuffers(1, &m_SSAOframebuffer);
     glDeleteFramebuffers(1, &m_SSAOBlurframebuffer);
     glDeleteFramebuffers(1, &m_gBuffer);
@@ -431,7 +436,7 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
     glDeleteTextures(2,&m_SSAOBlurframebufferTex);
 
     // Generate FrameBuffers and Textures
-    glGenFramebuffers(2, &m_FXAAframebuffer[0]);
+    glGenFramebuffers(2, &m_PingPongframebuffer[0]);
     glGenTextures(2, &m_FXAAframebufferTex[0]);
     glGenRenderbuffers(4, &m_rboDepthStencil[0]);
     glGenFramebuffers(1, &m_SSAOframebuffer);
@@ -441,7 +446,7 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
 
     // FIRST FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE3);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_FXAAframebuffer[0]);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_PingPongframebuffer[0]);
     glBindTexture(GL_TEXTURE_2D, m_FXAAframebufferTex[0]);
     glTexImage2D(
         GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
@@ -461,7 +466,7 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
 
     // SECOND FRAMEBUFFER TEXTURE AND BUFFER
     glActiveTexture(GL_TEXTURE4);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_FXAAframebuffer[1]);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_PingPongframebuffer[1]);
     glBindTexture(GL_TEXTURE_2D, m_FXAAframebufferTex[1]);
     glTexImage2D(
         GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL
@@ -573,7 +578,7 @@ GLvoid TVScene::resizeGL(GLint width, GLint height) noexcept {
 
 }
 
-
+// Below function taken from NGL scene
 void TVScene::initTexture(const GLuint& texUnit, GLuint &texId, const char *filename) {
     // Set our active texture unit
     glActiveTexture(GL_TEXTURE0 + texUnit);
@@ -722,10 +727,7 @@ void TVScene::paintGL() noexcept {
       frame=true;
     }
 
-// JUST TAKE OUT THIS TO GET SSAO
-//if(m_showssao)
-//{
-  // gBuffer (depth + normals)
+// SSAO G buffer
   if(m_ssaoonly | m_showssao)
   {
     glBindFramebuffer(GL_FRAMEBUFFER,m_gBuffer);
@@ -770,7 +772,7 @@ void TVScene::paintGL() noexcept {
 
   if(!m_ssaoonly)
   {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_FXAAframebuffer[whichFrame]);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_PingPongframebuffer[whichFrame]);
     glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

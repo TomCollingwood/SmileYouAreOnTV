@@ -118,6 +118,8 @@ int main() {
     glfwSetFramebufferSizeCallback(window, resize_callback);
     resize_callback(window, width, height);
 
+    g_scene.resizeGL(1280,720);
+
     // Main render loop
     while (!glfwWindowShouldClose(window)) {
         // Poll events

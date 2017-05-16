@@ -27,7 +27,7 @@ private:
   GLuint m_rboDepthStencil[4]; //SSAO + 2FXAA
   GLuint m_FXAAframebufferTex[2];
   GLuint m_SSAOframebufferTex;
-  GLuint m_FXAAframebuffer[2];
+  GLuint m_PingPongframebuffer[2];
   GLuint m_SSAOframebuffer;
   GLuint m_controls, m_title,m_testscreen;
 

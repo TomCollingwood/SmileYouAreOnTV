@@ -1,3 +1,5 @@
+/// @author Richard Southern & Tom Collingwood
+/// @note I (Tom C) added roll to this
 #include "trackballcamera.h"
 #include <glm/gtx/norm.hpp>
 #include <glm/gtc/constants.hpp>
